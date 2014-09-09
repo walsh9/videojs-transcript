@@ -5,7 +5,7 @@
   <title>Video.js Transcript</title>
 
   <link href="node_modules/video.js/dist/video-js/video-js.css" rel="stylesheet">
-
+  <link href="videojs-transcript.css" rel="stylesheet">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -39,12 +39,17 @@
     </p>
     <source src="http://vjs.zencdn.net/v/oceans.mp4" type="video/mp4">
     <source src="http://vjs.zencdn.net/v/oceans.webm" type="video/webm">
+    <track kind="captions" src="captions.vtt" srclang="en" label="English" default>
   </video>
+  <div id="transcript"></div>
   <script src="node_modules/video.js/dist/video-js/video.js"></script>
   <script src="lib/videojs-transcript.js"></script>
   <script>
+    var video = videojs('video');
     // fire up the plugin
-    videojs('video').transcript();
+    var transcript = video.transcript();
+    var transcriptElement = transcript.getContainer();
+    document.querySelector('#transcript').appendChild(transcriptElement);
   </script>
 </body>
 </html>

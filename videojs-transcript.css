@@ -1,0 +1,30 @@
+#transcript {
+  width: 600px;
+  margin: auto;
+  font-family-verdana
+}
+
+.transcript {
+  
+}
+
+.transcript-line {
+  padding: 5px;
+ 
+}
+.transcript-line:nth-child(odd) {
+  background: #eee;
+}
+
+.transcript-timestamp {
+  display: inline-block;
+  width: 50px;
+}
+
+.transcript-text {
+
+}
+
+.transcript-line.is-active {
+  background-color: #edef59;
+}
