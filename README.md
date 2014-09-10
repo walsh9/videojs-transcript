@@ -9,7 +9,7 @@ Creates interactive transcripts from text tracks.
 ### TODO:
 - [x] Seek video to transcript position when transcript is clicked
 - [ ] Support setup options
-- [ ] Nicer default CSS
+- [x] Nicer default CSS
 - [ ] More CSS examples
 - [ ] Handle multiple tracks
 - [ ] Automatically switch caption track when user selects a different track on the video.
