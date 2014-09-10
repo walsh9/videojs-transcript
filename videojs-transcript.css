@@ -5,13 +5,16 @@
 }
 
 .transcript {
-  
+  height: 200px;
+  overflow-y: scroll;
 }
 
 .transcript-line {
   padding: 5px;
- 
+  cursor: pointer;
 }
+
+
 .transcript-line:nth-child(odd) {
   background: #eee;
 }
@@ -23,6 +26,10 @@
 
 .transcript-text {
 
+}
+
+.transcript-line:hover {
+  background-color: #edef59;
 }
 
 .transcript-line.is-active {
