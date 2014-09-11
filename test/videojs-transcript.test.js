@@ -1,7 +1,7 @@
 /*! videojs-transcript - v0.0.0 - 2014-9-8
  * Copyright (c) 2014 Matthew Walsh
  * Licensed under the MIT license. */
-(function(window, videojs, qunit) {
+(function (window, videojs, qunit) {
   'use strict';
 
   var realIsHtmlSupported,
@@ -32,13 +32,15 @@
       // force HTML support so the tests run in a reasonable
       // environment under phantomjs
       realIsHtmlSupported = videojs.Html5.isSupported;
-      videojs.Html5.isSupported = function() {
+      videojs.Html5.isSupported = function () {
         return true;
       };
 
       // create a video element
       var video = document.createElement('video');
       document.querySelector('#qunit-fixture').appendChild(video);
+      var track = document.createElement('track');
+      video.appendChild(track);
 
       // create a video.js player
       player = videojs(video);
@@ -51,7 +53,7 @@
     }
   });
 
-  test('registers itself', function() {
+  test('registers itself', function () {
     ok(player.transcript, 'registered the plugin');
   });
-})(window, window.videojs, window.QUnit);
+}(window, window.videojs, window.QUnit));

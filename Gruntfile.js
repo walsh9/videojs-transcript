@@ -15,8 +15,13 @@ module.exports = function(grunt) {
         banner: '<%= banner %>',
         stripBanners: true
       },
-      dist: {
-        src: 'lib/**/*.js',
+      build: {
+        src: ['src/intro.js',
+              'src/utils.js',
+              'src/html.js',
+              'src/scrollhelper.js',
+              'src/main.js',
+              'src/outro.js'],
         dest: 'dist/<%= pkg.name %>.js'
       }
     },
@@ -25,7 +30,7 @@ module.exports = function(grunt) {
         banner: '<%= banner %>'
       },
       dist: {
-        src: '<%= concat.dist.dest %>',
+        src: '<%= concat.build.dest %>',
         dest: 'dist/<%= pkg.name %>.min.js'
       }
     },
@@ -43,13 +48,21 @@ module.exports = function(grunt) {
         options: {
           jshintrc: '.jshintrc'
         },
-        src: ['lib/**/*.js']
+        src: ['src/**/*.js',
+              '!src/intro.js',
+              '!src/outro.js']
       },
       test: {
         options: {
           jshintrc: '.jshintrc'
         },
         src: ['test/**/*.js']
+      },
+      build: {
+        options: {
+          jshintrc: '.jshintrc'
+        },
+        src: ['build/**/*.js']
       }
     },
     watch: {
@@ -77,8 +90,10 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default',
                      ['clean',
-                      'jshint',
-                      'qunit',
+                      'jshint:src',
                       'concat',
+                      'jshint:build',
+                      'jshint:test',
+                      'qunit',
                       'uglify']);
 };
