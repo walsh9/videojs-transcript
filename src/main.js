@@ -1,4 +1,5 @@
 /*global window, videojs, Html, ScrollHelper, Utils*/
+var Plugin = (function (window, videojs) {
   var defaults = {
     autoscroll: true
   },
@@ -63,9 +64,11 @@
           end = player.duration() || Infinity;
         }
         if (time > caption.begin && time < end) {
-          caption.element.classList.add('is-active');
-          if (settings.autoscroll && ScrollHelper.isScrollable(htmlContainer)) {
-            ScrollHelper.scrollIntoView(caption.element);
+          if (!caption.element.classList.contains('is-active')) { // don't update if it hasn't changed
+            caption.element.classList.add('is-active');
+            if (settings.autoscroll && ScrollHelper.isScrollable(htmlContainer)) {
+              ScrollHelper.scrollUpIntoView(caption.element);
+            }
           }
         } else {
           caption.element.classList.remove('is-active');
@@ -88,6 +91,5 @@
       getContainer: getContainer,
     };
   };
-  // register the plugin
-  videojs.plugin('transcript', transcript);
-
+  return {transcript: transcript};
+}(window, videojs));

@@ -1,4 +1,4 @@
-/*! videojs-transcript - v0.0.0 - 2014-09-11
+/*! videojs-transcript - v0.0.0 - 2014-09-12
 * Copyright (c) 2014 Matthew Walsh; Licensed MIT */
 (function (window, videojs) {
   'use strict';
@@ -73,21 +73,63 @@ var Html = (function () {
   };
 }());
 var ScrollHelper = (function () {
+  'use strict';
+  var isScrolling = false;
+  var requestAnimationFrame =
+    window.requestAnimationFrame       ||
+    window.webkitRequestAnimationFrame ||
+    window.msRequestAnimationFrame     ||
+    window.mozRequestAnimationFrame    ||
+    window.oRequestAnimationFrame      ||
+    function (callback) {
+      window.setTimeout(callback, 1000 / 60);
+    };
+  var easeOut = function (time, start, change, duration) {
+    return start + change * Math.sin(Math.min(1, time / duration) * (Math.PI / 2));
+  };
+  var scrollTo = function (element, newPos, duration) {
+    var startTime = Date.now();
+    var startPos = element.scrollTop;
+    var change = newPos - startPos;
+    newPos = Math.max(0, newPos);
+    isScrolling = true;
+    var updateScroll = function () {
+      var now = Date.now();
+      var time = now - startTime;
+      element.scrollTop = easeOut(time, startPos, change, duration);
+      if (element.scrollTop !== newPos) {
+        requestAnimationFrame(updateScroll, element);
+      } else {
+        isScrolling = false;
+      }
+    };
+    requestAnimationFrame(updateScroll, element);
+  };
+
+  var scrollUpIntoView = function (element) {
+    // TODO: don't scroll while user is scrolling
+    var parent = element.parentElement;
+    var position = (element.offsetTop + element.clientHeight) - (parent.offsetTop + parent.clientHeight);
+    var relpos = (element.offsetTop + element.clientHeight)  - parent.offsetTop;
+    // Don't try to scroll when already visible. 
+    // Don't try to scroll when already in position.
+    if ((relpos < parent.scrollTop || relpos > (parent.scrollTop + parent.clientHeight)) &&
+         parent.scrollTop !== position) {
+      if (!isScrolling) {
+        scrollTo(parent, position, 400);
+      }
+    }
+  };
   var isScrollable = function (container) {
     return container.scrollHeight > container.offsetHeight;
   };
-  var scrollIntoView = function (element) {
-    // TODO: make this nice and smooth
-    // TODO: don't scroll if line is already visible
-    // TODO: don't scroll while user is scrolling
-    element.scrollIntoView(false);
-  };
   return {
+    scrollUpIntoView : scrollUpIntoView,
     isScrollable : isScrollable,
-    scrollIntoView : scrollIntoView
   };
 }());
-var defaults = {
+var Plugin = (function (window, videojs) {
+  var defaults = {
     autoscroll: true
   },
     transcript;
@@ -151,9 +193,11 @@ var defaults = {
           end = player.duration() || Infinity;
         }
         if (time > caption.begin && time < end) {
-          caption.element.classList.add('is-active');
-          if (settings.autoscroll && ScrollHelper.isScrollable(htmlContainer)) {
-            ScrollHelper.scrollIntoView(caption.element);
+          if (!caption.element.classList.contains('is-active')) { // don't update if it hasn't changed
+            caption.element.classList.add('is-active');
+            if (settings.autoscroll && ScrollHelper.isScrollable(htmlContainer)) {
+              ScrollHelper.scrollUpIntoView(caption.element);
+            }
           }
         } else {
           caption.element.classList.remove('is-active');
@@ -176,8 +220,8 @@ var defaults = {
       getContainer: getContainer,
     };
   };
-  // register the plugin
-  videojs.plugin('transcript', transcript);
+  return {transcript: transcript};
+}(window, videojs));
 
-
+  videojs.plugin('transcript', Plugin.transcript);
 }(window, window.videojs));
