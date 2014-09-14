@@ -27,17 +27,22 @@ var Html = (function () {
     }
     var line, i;
     var fragment = document.createDocumentFragment();
-    track.load();
-    track.on('loaded', function () {
-      //console.log('Creating transcript with ' + track.cues().length + ' lines.');
+    var createTranscript = function () {
       var cues = track.cues();
       for (i = 0; i < cues.length; i++) {
         line = createLine(cues[i], myPrefix);
         fragment.appendChild(line);
       }
+      myContainer.innerHTML = '';
       myContainer.appendChild(fragment);
       myContainer.setAttribute('lang', track.language());
-    });
+    };
+    if (track.readyState() !== 2) {
+      track.load();
+      track.on('loaded', createTranscript);
+    } else {
+      createTranscript();
+    }
   };
   var init = function (container, player, prefix) {
     myContainer = container;

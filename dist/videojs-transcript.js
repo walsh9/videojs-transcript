@@ -1,4 +1,4 @@
-/*! videojs-transcript - v0.0.0 - 2014-09-12
+/*! videojs-transcript - v0.0.0 - 2014-09-14
 * Copyright (c) 2014 Matthew Walsh; Licensed MIT */
 (function (window, videojs) {
   'use strict';
@@ -48,17 +48,22 @@ var Html = (function () {
     }
     var line, i;
     var fragment = document.createDocumentFragment();
-    track.load();
-    track.on('loaded', function () {
-      //console.log('Creating transcript with ' + track.cues().length + ' lines.');
+    var createTranscript = function () {
       var cues = track.cues();
       for (i = 0; i < cues.length; i++) {
         line = createLine(cues[i], myPrefix);
         fragment.appendChild(line);
       }
+      myContainer.innerHTML = '';
       myContainer.appendChild(fragment);
       myContainer.setAttribute('lang', track.language());
-    });
+    };
+    if (track.readyState() !== 2) {
+      track.load();
+      track.on('loaded', createTranscript);
+    } else {
+      createTranscript();
+    }
   };
   var init = function (container, player, prefix) {
     myContainer = container;
@@ -156,14 +161,14 @@ var Plugin = (function (window, videojs) {
       }
       return validTracks;
     };
-    var getDefaultTrack = function (tracks) {
+    var getActiveTrack = function (tracks) {
       var i;
       for (i = 0; i < tracks.length; i++) {
-        if (tracks[i].dflt && tracks[i].dflt()) {
+        if (tracks[i].mode() === 2 && tracks[i].cues().length > 0) {
           return tracks[i];
         }
       }
-      return tracks[0];
+      return currentTrack || tracks[0];
     };
     var getCaptionNodes = function () {
       var i, node, caption;
@@ -204,12 +209,17 @@ var Plugin = (function (window, videojs) {
         }
       }
     };
+    var trackChange = function () {
+      currentTrack = getActiveTrack(tracks);
+      Html.setTrack(currentTrack);
+    };
     tracks = getAllTracks();
     if (tracks.length > 0) {
-      currentTrack = getDefaultTrack(tracks);
       Html.init(htmlContainer, player, htmlPrefix);
-      Html.setTrack(currentTrack);
-      this.on('timeupdate', timeUpdate);
+      trackChange();
+      player.on('timeupdate', timeUpdate);
+      player.on('captionstrackchange', trackChange);
+      player.on('subtitlestrackchange', trackChange);
     } else {
       throw new Error('videojs-transcript: No tracks found!');
     }

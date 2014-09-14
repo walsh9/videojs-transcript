@@ -27,14 +27,14 @@ var Plugin = (function (window, videojs) {
       }
       return validTracks;
     };
-    var getDefaultTrack = function (tracks) {
+    var getActiveTrack = function (tracks) {
       var i;
       for (i = 0; i < tracks.length; i++) {
-        if (tracks[i].dflt && tracks[i].dflt()) {
+        if (tracks[i].mode() === 2 && tracks[i].cues().length > 0) {
           return tracks[i];
         }
       }
-      return tracks[0];
+      return currentTrack || tracks[0];
     };
     var getCaptionNodes = function () {
       var i, node, caption;
@@ -75,12 +75,17 @@ var Plugin = (function (window, videojs) {
         }
       }
     };
+    var trackChange = function () {
+      currentTrack = getActiveTrack(tracks);
+      Html.setTrack(currentTrack);
+    };
     tracks = getAllTracks();
     if (tracks.length > 0) {
-      currentTrack = getDefaultTrack(tracks);
       Html.init(htmlContainer, player, htmlPrefix);
-      Html.setTrack(currentTrack);
-      this.on('timeupdate', timeUpdate);
+      trackChange();
+      player.on('timeupdate', timeUpdate);
+      player.on('captionstrackchange', trackChange);
+      player.on('subtitlestrackchange', trackChange);
     } else {
       throw new Error('videojs-transcript: No tracks found!');
     }
