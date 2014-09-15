@@ -1,4 +1,4 @@
-/*! videojs-transcript - v0.0.0 - 2014-09-14
+/*! videojs-transcript - v0.0.0 - 2014-09-15
 * Copyright (c) 2014 Matthew Walsh; Licensed MIT */
 (function (window, videojs) {
   'use strict';
@@ -164,7 +164,7 @@ var Plugin = (function (window, videojs) {
     var getActiveTrack = function (tracks) {
       var i;
       for (i = 0; i < tracks.length; i++) {
-        if (tracks[i].mode() === 2 && tracks[i].cues().length > 0) {
+        if (tracks[i].mode() === 2) {
           return tracks[i];
         }
       }

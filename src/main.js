@@ -30,7 +30,7 @@ var Plugin = (function (window, videojs) {
     var getActiveTrack = function (tracks) {
       var i;
       for (i = 0; i < tracks.length; i++) {
-        if (tracks[i].mode() === 2 && tracks[i].cues().length > 0) {
+        if (tracks[i].mode() === 2) {
           return tracks[i];
         }
       }
