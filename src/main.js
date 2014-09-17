@@ -1,14 +1,11 @@
 /*global window, videojs, Html, ScrollHelper, Utils*/
 var Plugin = (function (window, videojs) {
   var defaults = {
-    autoscroll: true
-  },
-    transcript;
-  /**
-   * Initialize the plugin.
-   * @param options (optional) {object} configuration for the plugin
-   */
-  transcript = function (options) {
+    autoscroll: true,
+    clickArea: 'line'
+  };
+
+  var transcript = function (options) {
     var settings = videojs.util.mergeOptions(defaults, options);
     var player = this;
     var htmlPrefix = 'transcript';
@@ -81,7 +78,7 @@ var Plugin = (function (window, videojs) {
     };
     tracks = getAllTracks();
     if (tracks.length > 0) {
-      Html.init(htmlContainer, player, htmlPrefix);
+      Html.init(htmlContainer, player, htmlPrefix, settings);
       trackChange();
       player.on('timeupdate', timeUpdate);
       player.on('captionstrackchange', trackChange);
@@ -89,11 +86,12 @@ var Plugin = (function (window, videojs) {
     } else {
       throw new Error('videojs-transcript: No tracks found!');
     }
-    var getContainer = function () {
+    var el = function () {
       return htmlContainer;
     };
     return {
-      getContainer: getContainer,
+      el: el,
+      setTrack: trackChange,
     };
   };
   return {transcript: transcript};

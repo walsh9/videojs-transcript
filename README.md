@@ -42,10 +42,15 @@ You may pass in an options object to the plugin upon initialization. This
 object may contain any of the following properties:
 
 #### autoscroll
-Type: `autoscroll`
-Default: true
+**Default:** true
 
 Set to false to disable autoscrolling.
+
+#### clickArea
+**Default:** 'line'
+
+Set which elements in the transcript are clickable.
+Options are 'timestamp', 'text', the whole 'line', or 'none'.
 
 ## Release History
 

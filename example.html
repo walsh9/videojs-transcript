@@ -51,9 +51,10 @@
   <script>
     var video = videojs('video');
     // fire up the plugin
-    var transcript = video.transcript();
-    var transcriptElement = transcript.getContainer();
-    document.querySelector('#transcript').appendChild(transcriptElement);
+    var options = {clickArea: 'timestamp'};
+    var transcript = video.transcript(options);
+    var transcriptContainer = document.querySelector('#transcript');
+    transcriptContainer.appendChild(transcript.el());
   </script>
 </body>
 </html>

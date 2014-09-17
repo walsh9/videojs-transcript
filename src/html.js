@@ -1,6 +1,6 @@
 /*global Utils*/
 var Html = (function () {
-  var myContainer, myPlayer, myPrefix;
+  var myContainer, myPlayer, myPrefix, settings;
   var createSeekClickHandler = function (time) {
     return function () {
       myPlayer.currentTime(time);
@@ -14,11 +14,24 @@ var Html = (function () {
     line.setAttribute('data-begin', cue.startTime);
     timestamp.className = myPrefix + '-timestamp';
     timestamp.textContent = Utils.niceTimestamp(cue.startTime);
-    line.addEventListener('click', createSeekClickHandler(cue.startTime));
     text.className = myPrefix + '-text';
     text.innerHTML = cue.text;
     line.appendChild(timestamp);
     line.appendChild(text);
+    // Need to change to use single event handler on parent.
+    switch (settings.clickArea) {
+    case 'line':
+      line.addEventListener('click', createSeekClickHandler(cue.startTime));
+      break;
+    case 'text':
+      text.addEventListener('click', createSeekClickHandler(cue.startTime));
+      break;
+    case 'timestamp':
+      timestamp.addEventListener('click', createSeekClickHandler(cue.startTime));
+      break;
+    default:
+      break;
+    }
     return line;
   };
   var setTrack = function (track) {
@@ -44,10 +57,11 @@ var Html = (function () {
       createTranscript();
     }
   };
-  var init = function (container, player, prefix) {
+  var init = function (container, player, prefix, options) {
     myContainer = container;
     myPlayer = player;
     myPrefix = prefix;
+    settings = options;
     myContainer.className = prefix;
     myContainer.id = myPrefix + '-' + myPlayer.id();
   };
