@@ -2,7 +2,7 @@
 var Html = (function () {
   var myContainer, myPlayer, myPrefix, settings;
   var createSeekClickHandler = function (time) {
-    return function () {
+    return function (e) {
       myPlayer.currentTime(time);
     };
   };
@@ -18,20 +18,6 @@ var Html = (function () {
     text.innerHTML = cue.text;
     line.appendChild(timestamp);
     line.appendChild(text);
-    // Need to change to use single event handler on parent.
-    switch (settings.clickArea) {
-    case 'line':
-      line.addEventListener('click', createSeekClickHandler(cue.startTime));
-      break;
-    case 'text':
-      text.addEventListener('click', createSeekClickHandler(cue.startTime));
-      break;
-    case 'timestamp':
-      timestamp.addEventListener('click', createSeekClickHandler(cue.startTime));
-      break;
-    default:
-      break;
-    }
     return line;
   };
   var setTrack = function (track) {
@@ -50,6 +36,17 @@ var Html = (function () {
       myContainer.appendChild(fragment);
       myContainer.setAttribute('lang', track.language());
     };
+    myContainer.addEventListener('click', function (e) {
+      var clickedClasses = e.target.classList;
+      var clickedTime = e.target.getAttribute('data-begin') || e.target.parentElement.getAttribute('data-begin');
+      if (clickedTime !== undefined && clickedTime !== null) { // can be zero
+        if ((settings.clickArea === 'line') || // clickArea: 'line' activates on all elements 
+             (settings.clickArea === 'timestamp' && clickedClasses.contains(myPrefix + '-timestamp')) ||
+               (settings.clickArea === 'text' && clickedClasses.contains(myPrefix + '-text'))) {
+          myPlayer.currentTime(clickedTime);
+        }
+      }
+    });
     if (track.readyState() !== 2) {
       track.load();
       track.on('loaded', createTranscript);
