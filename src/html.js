@@ -36,9 +36,9 @@ var Html = (function () {
       myContainer.appendChild(fragment);
       myContainer.setAttribute('lang', track.language());
     };
-    myContainer.addEventListener('click', function (e) {
-      var clickedClasses = e.target.classList;
-      var clickedTime = e.target.getAttribute('data-begin') || e.target.parentElement.getAttribute('data-begin');
+    myContainer.addEventListener('click', function (event) {
+      var clickedClasses = event.target.classList;
+      var clickedTime = event.target.getAttribute('data-begin') || event.target.parentElement.getAttribute('data-begin');
       if (clickedTime !== undefined && clickedTime !== null) { // can be zero
         if ((settings.clickArea === 'line') || // clickArea: 'line' activates on all elements 
              (settings.clickArea === 'timestamp' && clickedClasses.contains(myPrefix + '-timestamp')) ||
@@ -47,6 +47,7 @@ var Html = (function () {
         }
       }
     });
+
     if (track.readyState() !== 2) {
       track.load();
       track.on('loaded', createTranscript);

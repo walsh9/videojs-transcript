@@ -1,4 +1,4 @@
-/*global window, videojs, Html, ScrollHelper, Utils*/
+/*global window, videojs, Html, Scroller, Utils*/
 var Plugin = (function (window, videojs) {
   var defaults = {
     autoscroll: true,
@@ -63,8 +63,10 @@ var Plugin = (function (window, videojs) {
         if (time > caption.begin && time < end) {
           if (!caption.element.classList.contains('is-active')) { // don't update if it hasn't changed
             caption.element.classList.add('is-active');
-            if (settings.autoscroll && ScrollHelper.isScrollable(htmlContainer)) {
-              ScrollHelper.scrollUpIntoView(caption.element);
+            if (settings.autoscroll &&
+                Scroller.canScroll(htmlContainer) &&
+                !Scroller.inUse()) {
+              Scroller.scrollToElement(caption.element);
             }
           }
         } else {
@@ -79,6 +81,7 @@ var Plugin = (function (window, videojs) {
     tracks = getAllTracks();
     if (tracks.length > 0) {
       Html.init(htmlContainer, player, htmlPrefix, settings);
+      Scroller.initHandlers(htmlContainer);
       trackChange();
       player.on('timeupdate', timeUpdate);
       player.on('captionstrackchange', trackChange);

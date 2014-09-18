@@ -1,4 +1,4 @@
-/*! videojs-transcript - v0.0.0 - 2014-09-16
+/*! videojs-transcript - v0.0.0 - 2014-09-17
 * Copyright (c) 2014 Matthew Walsh; Licensed MIT */
 (function (window, videojs) {
   'use strict';
@@ -57,9 +57,9 @@ var Html = (function () {
       myContainer.appendChild(fragment);
       myContainer.setAttribute('lang', track.language());
     };
-    myContainer.addEventListener('click', function (e) {
-      var clickedClasses = e.target.classList;
-      var clickedTime = e.target.getAttribute('data-begin') || e.target.parentElement.getAttribute('data-begin');
+    myContainer.addEventListener('click', function (event) {
+      var clickedClasses = event.target.classList;
+      var clickedTime = event.target.getAttribute('data-begin') || event.target.parentElement.getAttribute('data-begin');
       if (clickedTime !== undefined && clickedTime !== null) { // can be zero
         if ((settings.clickArea === 'line') || // clickArea: 'line' activates on all elements 
              (settings.clickArea === 'timestamp' && clickedClasses.contains(myPrefix + '-timestamp')) ||
@@ -68,6 +68,7 @@ var Html = (function () {
         }
       }
     });
+
     if (track.readyState() !== 2) {
       track.load();
       track.on('loaded', createTranscript);
@@ -88,9 +89,24 @@ var Html = (function () {
     setTrack: setTrack,
   };
 }());
-var ScrollHelper = (function () {
+var Scroller = (function () {
   'use strict';
-  var isScrolling = false;
+
+// Keep track when the user is scrolling the transcript.
+
+  var userIsScrolling = false;
+
+// Keep track of when the mouse is hovering the transcript.
+
+  var mouseIsOverTranscript = false;
+
+// The initial element creation triggers a scroll event. We don't want to consider 
+// this as the user scrolling, so we initialize the isAutoScrolling flag to true.
+
+  var isAutoScrolling = true;
+
+// requestAnimationFrame compatibility shim.
+
   var requestAnimationFrame =
     window.requestAnimationFrame       ||
     window.webkitRequestAnimationFrame ||
@@ -100,48 +116,117 @@ var ScrollHelper = (function () {
     function (callback) {
       window.setTimeout(callback, 1000 / 60);
     };
+
+// For smooth animation.
+
   var easeOut = function (time, start, change, duration) {
     return start + change * Math.sin(Math.min(1, time / duration) * (Math.PI / 2));
   };
+
+// Animate the scrolling.
+
   var scrollTo = function (element, newPos, duration) {
     var startTime = Date.now();
     var startPos = element.scrollTop;
-    var change = newPos - startPos;
+
+// Don't try to scroll beyond the limits. You won't get there and this will loop forever.
+
     newPos = Math.max(0, newPos);
-    isScrolling = true;
+    newPos = Math.min(element.scrollHeight, newPos);
+    var change = newPos - startPos;
+
+// This inner function is called until the elements scrollTop reaches newPos.
+
     var updateScroll = function () {
       var now = Date.now();
       var time = now - startTime;
+      isAutoScrolling = true;
       element.scrollTop = easeOut(time, startPos, change, duration);
       if (element.scrollTop !== newPos) {
         requestAnimationFrame(updateScroll, element);
-      } else {
-        isScrolling = false;
       }
     };
     requestAnimationFrame(updateScroll, element);
   };
 
-  var scrollUpIntoView = function (element) {
-    // TODO: don't scroll while user is scrolling
+// Scroll an element so it's bottom edge meets the bottom edge of it's parent.  This should look good when moving downwards.
+
+  var scrollToElement = function (element) {
     var parent = element.parentElement;
     var position = (element.offsetTop + element.clientHeight) - (parent.offsetTop + parent.clientHeight);
     var relpos = (element.offsetTop + element.clientHeight)  - parent.offsetTop;
-    // Don't try to scroll when already visible. 
-    // Don't try to scroll when already in position.
+
+// Don't try to scroll when already visible. 
+// Don't try to scroll when already in position.
+
     if ((relpos < parent.scrollTop || relpos > (parent.scrollTop + parent.clientHeight)) &&
          parent.scrollTop !== position) {
-      if (!isScrolling) {
-        scrollTo(parent, position, 400);
-      }
+      scrollTo(parent, position, 400);
     }
   };
-  var isScrollable = function (container) {
+
+// Set Event Handlers to monitor user scrolling.
+
+  var initHandlers = function (element) {
+
+// The scroll event. We want to keep track of when the user is scrolling the transcript.
+
+    element.addEventListener('scroll', function () {
+      if (isAutoScrolling) {
+
+// If isAutoScrolling was set to true, we can set it to false and then ignore this event.
+
+        isAutoScrolling = false; // event handled
+      } else {
+
+// We only care about when the user scrolls. Set userIsScrolling to true and add a nice class.
+
+        userIsScrolling = true;
+        element.classList.add('is-inuse');
+      }
+    });
+
+// The mouseover event.
+
+    element.addEventListener('mouseover', function () {
+      mouseIsOverTranscript = true;
+    });
+    element.addEventListener('mouseout', function () {
+      mouseIsOverTranscript = false;
+
+// Have a small delay before deciding user as done interacting.
+
+      setTimeout(function () {
+
+// Make sure the user didn't move the pointer back in. 
+
+        if (!mouseIsOverTranscript) {
+          userIsScrolling = false;
+          element.classList.remove('is-inuse');
+        }
+      }, 1000);
+    });
+  };
+
+// Return whether the element is scrollable.
+
+  var canScroll = function (container) {
     return container.scrollHeight > container.offsetHeight;
   };
+
+// Return whether the user is interacting with the transcript.
+
+  var inUse = function () {
+    return userIsScrolling;
+  };
+
+// Public Methods
+
   return {
-    scrollUpIntoView : scrollUpIntoView,
-    isScrollable : isScrollable,
+    scrollToElement : scrollToElement,
+    initHandlers : initHandlers,
+    inUse : inUse,
+    canScroll : canScroll,
   };
 }());
 var Plugin = (function (window, videojs) {
@@ -208,8 +293,10 @@ var Plugin = (function (window, videojs) {
         if (time > caption.begin && time < end) {
           if (!caption.element.classList.contains('is-active')) { // don't update if it hasn't changed
             caption.element.classList.add('is-active');
-            if (settings.autoscroll && ScrollHelper.isScrollable(htmlContainer)) {
-              ScrollHelper.scrollUpIntoView(caption.element);
+            if (settings.autoscroll &&
+                Scroller.canScroll(htmlContainer) &&
+                !Scroller.inUse()) {
+              Scroller.scrollToElement(caption.element);
             }
           }
         } else {
@@ -224,6 +311,7 @@ var Plugin = (function (window, videojs) {
     tracks = getAllTracks();
     if (tracks.length > 0) {
       Html.init(htmlContainer, player, htmlPrefix, settings);
+      Scroller.initHandlers(htmlContainer);
       trackChange();
       player.on('timeupdate', timeUpdate);
       player.on('captionstrackchange', trackChange);

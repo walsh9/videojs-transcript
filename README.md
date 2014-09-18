@@ -16,8 +16,8 @@ Creates interactive transcripts from text tracks.
 - [ ] Separate track switcher 
 - [x] Autoscrolling transcript
 - [x] *Smooth*, animated scrolling 
-- [ ] Clean up scrolling logic.
-- [ ] Prevent autoscrolling when user is interacting with transcript (nice to have)
+- [x] Clean up scrolling logic.
+- [x] Prevent autoscrolling when user is interacting with transcript (nice to have)
 - [ ] Tests!
 - [ ] More...
 
