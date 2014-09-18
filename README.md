@@ -8,9 +8,9 @@ Creates interactive transcripts from text tracks.
 
 ### TODO:
 - [x] Seek video to transcript position when transcript is clicked
-- [ ] Add setup options
+- [ ] Add more setup options
 - [x] Nicer default CSS
-- [ ] More CSS examples
+- [x] More CSS examples
 - [x] Handle multiple tracks
 - [x] Automatically switch caption track when user selects a different track on the video.
 - [ ] Separate track switcher 

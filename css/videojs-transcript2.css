@@ -1,0 +1,40 @@
+#transcript {
+  width: 600px;
+  margin: auto;
+  font-family: Arial, sans-serif;
+}
+
+.transcript-line {
+  position: relative;
+  padding: 5px;
+  cursor: pointer;
+  line-height: 1.3;
+}
+
+.transcript-timestamp {
+  position: absolute;
+  display: inline-block;
+  color: #666;
+  width: 50px;
+}
+
+.transcript-text {
+  display: block;
+  margin-left: 50px;
+  padding-left: 10px;
+}
+
+.transcript-line:hover .transcript-text {
+  border-left: 3px solid #c9f3f3;
+  padding-left: 7px;
+}
+
+.transcript-line.is-active .transcript-text {
+  border-left: 3px solid #ccc;
+  padding-left: 7px;
+  font-weight: bold;
+}
+
+.transcript-line.is-active .transcript-timestamp {
+  color: #111;
+}
