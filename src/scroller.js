@@ -1,5 +1,4 @@
 var Scroller = (function () {
-  'use strict';
 
 // Keep track when the user is scrolling the transcript.
 
@@ -41,7 +40,7 @@ var Scroller = (function () {
 // Don't try to scroll beyond the limits. You won't get there and this will loop forever.
 
     newPos = Math.max(0, newPos);
-    newPos = Math.min(element.scrollHeight, newPos);
+    newPos = Math.min(element.scrollHeight - element.clientHeight, newPos);
     var change = newPos - startPos;
 
 // This inner function is called until the elements scrollTop reaches newPos.
@@ -58,19 +57,33 @@ var Scroller = (function () {
     requestAnimationFrame(updateScroll, element);
   };
 
-// Scroll an element so it's bottom edge meets the bottom edge of it's parent.  This should look good when moving downwards.
+// Scroll an element's parent so the element is brought into view. 
 
   var scrollToElement = function (element) {
     var parent = element.parentElement;
-    var position = (element.offsetTop + element.clientHeight) - (parent.offsetTop + parent.clientHeight);
-    var relpos = (element.offsetTop + element.clientHeight)  - parent.offsetTop;
+    var relPos = (element.offsetTop + element.clientHeight)  - parent.offsetTop;
+    var newPos;
 
-// Don't try to scroll when already visible. 
-// Don't try to scroll when already in position.
+// If the line is above the top of the parent view, were scrolling up, 
+// so we want to move the top of the element downwards to match the top of the parent.
 
-    if ((relpos < parent.scrollTop || relpos > (parent.scrollTop + parent.clientHeight)) &&
-         parent.scrollTop !== position) {
-      scrollTo(parent, position, 400);
+    if (relPos < parent.scrollTop) {
+      newPos = element.offsetTop - parent.offsetTop;
+
+// If the line is below the parent view, we're scrolling down, so we want the
+// bottom edge of the line to move up to meet the bottom edge of the parent.
+
+    } else if (relPos > (parent.scrollTop + parent.clientHeight)) {
+      newPos = (element.offsetTop + element.clientHeight) - (parent.offsetTop + parent.clientHeight);
+    }
+
+// Don't try to scroll if we haven't set a new position.  If we didn't
+// set a new position the line is already in view (i.e. It's not above
+// or below the view)
+// And don't try to scroll when the element is already in position.
+
+    if (newPos !== undefined && parent.scrollTop !== newPos) {
+      scrollTo(parent, newPos, 400);
     }
   };
 
