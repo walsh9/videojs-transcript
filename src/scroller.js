@@ -61,7 +61,9 @@ var Scroller = (function () {
 
   var scrollToElement = function (element) {
     var parent = element.parentElement;
-    var relPos = (element.offsetTop + element.clientHeight)  - parent.offsetTop;
+    var parentOffsetBottom = parent.offsetTop + parent.clientHeight;
+    var elementOffsetBottom = element.offsetTop + element.clientHeight;
+    var relPos = (element.offsetTop + element.clientHeight) - parent.offsetTop;
     var newPos;
 
 // If the line is above the top of the parent view, were scrolling up, 
@@ -74,7 +76,7 @@ var Scroller = (function () {
 // bottom edge of the line to move up to meet the bottom edge of the parent.
 
     } else if (relPos > (parent.scrollTop + parent.clientHeight)) {
-      newPos = (element.offsetTop + element.clientHeight) - (parent.offsetTop + parent.clientHeight);
+      newPos = elementOffsetBottom - parentOffsetBottom;
     }
 
 // Don't try to scroll if we haven't set a new position.  If we didn't
