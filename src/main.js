@@ -1,4 +1,5 @@
 /*global window, videojs, Html, Scroller, Utils*/
+
 var Plugin = (function (window, videojs) {
   var defaults = {
     autoscroll: true,
@@ -80,7 +81,7 @@ var Plugin = (function (window, videojs) {
     };
     tracks = getAllTracks();
     if (tracks.length > 0) {
-      Html.init(htmlContainer, player, htmlPrefix, settings);
+      Html.init(htmlContainer, player, htmlPrefix, this);
       Scroller.initHandlers(htmlContainer);
       trackChange();
       player.on('timeupdate', timeUpdate);
@@ -95,6 +96,7 @@ var Plugin = (function (window, videojs) {
     return {
       el: el,
       setTrack: trackChange,
+      options: options,
     };
   };
   return {transcript: transcript};

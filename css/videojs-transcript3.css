@@ -4,7 +4,7 @@
   font-family: Arial, sans-serif;
 }
 
-.transcript {
+.transcript-lines {
   height: 200px;
   overflow-y: scroll;
   border: 1px solid #111;

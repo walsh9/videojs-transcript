@@ -1,11 +1,12 @@
 /*global Utils*/
 var Html = (function () {
-  var myContainer, myPlayer, myPrefix, settings;
+  var myContainer, subContainer, myPlayer, myPrefix, settings;
   var createSeekClickHandler = function (time) {
     return function (e) {
       myPlayer.currentTime(time);
     };
   };
+
   var createLine = function (cue) {
     var line = document.createElement('div');
     var timestamp = document.createElement('span');
@@ -21,7 +22,10 @@ var Html = (function () {
     return line;
   };
   var setTrack = function (track) {
-    if (myContainer === undefined) {
+    if (typeof track !== 'object') {
+      track = myPlayer.textTracks()[track];
+    }
+    if (subContainer === undefined) {
       throw new Error('videojs-transcript: Html not initialized!');
     }
     var line, i;
@@ -32,11 +36,11 @@ var Html = (function () {
         line = createLine(cues[i], myPrefix);
         fragment.appendChild(line);
       }
-      myContainer.innerHTML = '';
-      myContainer.appendChild(fragment);
-      myContainer.setAttribute('lang', track.language());
+      subContainer.innerHTML = '';
+      subContainer.appendChild(fragment);
+      subContainer.setAttribute('lang', track.language());
     };
-    myContainer.addEventListener('click', function (event) {
+    subContainer.addEventListener('click', function (event) {
       var clickedClasses = event.target.classList;
       var clickedTime = event.target.getAttribute('data-begin') || event.target.parentElement.getAttribute('data-begin');
       if (clickedTime !== undefined && clickedTime !== null) { // can be zero
@@ -47,7 +51,6 @@ var Html = (function () {
         }
       }
     });
-
     if (track.readyState() !== 2) {
       track.load();
       track.on('loaded', createTranscript);
@@ -55,13 +58,32 @@ var Html = (function () {
       createTranscript();
     }
   };
-  var init = function (container, player, prefix, options) {
+  var createSelector = function (tracks) {
+    var select =  document.createElement('select');
+    var i, track, option;
+    for (i = 0; i < tracks.length; i++) {
+      track = tracks[i];
+      option = document.createElement('option');
+      option.value = i;
+      option.textContent = track.label() + ' (' + track.language() + ')';
+      select.appendChild(option);
+    }
+    select.addEventListener('change', function (e) {
+      setTrack(document.querySelector('#' + myPrefix + '-' + myPlayer.id() + ' option:checked').value);
+    });
+    return select;
+  };
+  var init = function (container, player, prefix, plugin) {
     myContainer = container;
     myPlayer = player;
     myPrefix = prefix;
-    settings = options;
+    subContainer = document.createElement('div');
+    settings = plugin.options;
     myContainer.className = prefix;
+    subContainer.className = prefix + '-lines';
     myContainer.id = myPrefix + '-' + myPlayer.id();
+    myContainer.appendChild(createSelector(myPlayer.textTracks()));
+    myContainer.appendChild(subContainer);
   };
   return {
     init: init,
