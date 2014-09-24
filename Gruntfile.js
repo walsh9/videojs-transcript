@@ -17,9 +17,10 @@ module.exports = function(grunt) {
       },
       build: {
         src: ['src/intro.js',
+              'src/shims.js',
               'src/utils.js',
+              'src/scrollable.js',
               'src/html.js',
-              'src/scroller.js',
               'src/main.js',
               'src/outro.js'],
         dest: 'dist/<%= pkg.name %>.js'

@@ -1,22 +1,16 @@
-/*global window, videojs, Html, Scroller, Utils*/
+/*global window, videojs*/
 
-var Plugin = (function (window, videojs) {
   var defaults = {
     autoscroll: true,
     clickArea: 'line'
   };
 
   var transcript = function (options) {
-    var settings = videojs.util.mergeOptions(defaults, options);
-    var player = this;
-    var htmlPrefix = 'transcript';
-    var htmlContainer = document.createElement('div');
-    var tracks;
-    var currentTrack;
+    var settings_ = videojs.util.mergeOptions(defaults, options);
     var getAllTracks = function () {
       var i, kind;
       var validTracks = [];
-      tracks = player.textTracks();
+      var tracks = player_.textTracks();
       for (i = 0; i < tracks.length; i++) {
         kind = tracks[i].kind();
         if (kind === 'captions' || kind === 'subtitles') {
@@ -32,11 +26,11 @@ var Plugin = (function (window, videojs) {
           return tracks[i];
         }
       }
-      return currentTrack || tracks[0];
+      return currentTrack_ || tracks[0];
     };
     var getCaptionNodes = function () {
       var i, node, caption;
-      var nodes = document.querySelectorAll('#' + htmlContainer.id + ' > .' + htmlPrefix + '-line');
+      var nodes = document.querySelectorAll('#' + el_.id + ' > .' + prefix_ + '-line');
       var captions = [];
       for (i = 0; i < nodes.length; i++) {
         node = nodes[i];
@@ -50,7 +44,7 @@ var Plugin = (function (window, videojs) {
     };
     var timeUpdate = function () {
       var caption, end, i;
-      var time = player.currentTime();
+      var time = player_.currentTime();
       var captions = getCaptionNodes();
       for (i = 0; i < captions.length; i++) {
         caption = captions[i];
@@ -59,45 +53,44 @@ var Plugin = (function (window, videojs) {
         if (i < captions.length - 1) {
           end = captions[i + 1].begin;
         } else {
-          end = player.duration() || Infinity;
+          end = player_.duration() || Infinity;
         }
         if (time > caption.begin && time < end) {
           if (!caption.element.classList.contains('is-active')) { // don't update if it hasn't changed
             caption.element.classList.add('is-active');
-            if (settings.autoscroll &&
-                Scroller.canScroll(htmlContainer) &&
-                !Scroller.inUse()) {
-              Scroller.scrollToElement(caption.element);
-            }
+            // if (settings.autoscroll &&
+            //     Scroller.canScroll(htmlContainer) &&
+            //     !Scroller.inUse()) {
+            //   Scroller.scrollToElement(caption.element);
+            // }
           }
         } else {
           caption.element.classList.remove('is-active');
         }
       }
     };
+    validTracks_ = getAllTracks();
     var trackChange = function () {
-      currentTrack = getActiveTrack(tracks);
-      Html.setTrack(currentTrack);
+      currentTrack_ = getActiveTrack(validTracks_);
+      html.replaceTranscriptBody(currentTrack_)
     };
-    tracks = getAllTracks();
-    if (tracks.length > 0) {
-      Html.init(htmlContainer, player, htmlPrefix, this);
-      Scroller.initHandlers(htmlContainer);
+    if (validTracks_.length > 0) {
+      el_ = html.createTranscript;
       trackChange();
-      player.on('timeupdate', timeUpdate);
-      player.on('captionstrackchange', trackChange);
-      player.on('subtitlestrackchange', trackChange);
+      player_.on('timeupdate', timeUpdate);
+      player_.on('captionstrackchange', trackChange);
+      player_.on('subtitlestrackchange', trackChange);
     } else {
       throw new Error('videojs-transcript: No tracks found!');
     }
     var el = function () {
-      return htmlContainer;
+      return el_;
     };
     return {
       el: el,
       setTrack: trackChange,
-      options: options,
+      options: options_,
     };
   };
-  return {transcript: transcript};
+  videojs.plugin('transcript', transcript);
 }(window, videojs));
