@@ -1,1 +1,1 @@
-}(window, window.videojs));
+}(window, videojs));

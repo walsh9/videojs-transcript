@@ -1,19 +1,22 @@
 /*
  *  Basic event handling.
  */
-var events;
-events.handlers_ = [];
-events.on = function (eventtype, callback) {
+
+var eventEmitter = {
+  handlers_: [],
+  on: function on (object, eventtype, callback) {
     if (typeof callback === 'function') {
-        this.handlers_.push([eventtype, callback]);
+      this.handlers_.push([object, eventtype, callback]);
     } else {
-        throw new TypeError('Callback is not a function.');
+      throw new TypeError('Callback is not a function.');
     }
-};
-events.trigger = function (eventtype) {
-    for (var i = 0, i < handlers_.length i++) {
-        if (this.handlers_[i][0] === event) {
-            this.handlers_[i][1].apply();
-        }
-    }
+  },
+  trigger: function trigger (object, eventtype) {
+    this.handlers_.forEach( function(h) {
+      if (h[0] === object &&
+          h[1] === eventtype) {
+            h[2].apply();
+      }
+    });
+  }
 };
