@@ -72,13 +72,14 @@ var transcriptWidget = function (plugin) {
 
   var createTranscript = function () {
     var el = document.createElement('div');
-    plugin.el.setAttribute('id', plugin.prefix + '-' + plugin.player.id());
+    el.setAttribute('id', plugin.prefix + '-' + plugin.player.id());
     var title = createTitle();
     var selector = selectorWidget.create();
-    var body = createTranscriptBody(plugin.currentTrack);
+    var body = scrollable.create(createTranscriptBody(plugin.currentTrack));
     el.appendChild(title);
     el.appendChild(selector);
-    el.appendChild(body.el);
+    el.appendChild(body.element);
+    this.element = el;
     return el;
   };
 
@@ -90,7 +91,7 @@ var transcriptWidget = function (plugin) {
 
   };
   var el = function () {
-
+    return this.element;
   };
 
   return {

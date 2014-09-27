@@ -1,5 +1,6 @@
 /*global window, videojs, my, defaults, trackList, transcriptWidget*/
 var transcript = function (options) {
+  my.player = this;
   my.validTracks = trackList.get();
   my.settings = videojs.util.mergeOptions(defaults, options);
   my.widget = transcriptWidget.create();

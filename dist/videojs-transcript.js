@@ -1,372 +1,419 @@
-/*! videojs-transcript - v0.0.0 - 2014-09-20
+/*! videojs-transcript - v0.0.0 - 2014-09-26
 * Copyright (c) 2014 Matthew Walsh; Licensed MIT */
 (function (window, videojs) {
   'use strict';
 
 
-var Utils = (function () {
-  var niceTimestamp = function (timeInSeconds) {
-    var hour = Math.floor(timeInSeconds / 3600);
-    var min = Math.floor(timeInSeconds % 3600 / 60);
-    var sec = Math.floor(timeInSeconds % 60);
-    sec = (sec < 10) ? '0' + sec : sec;
-    min = (hour > 0 && min < 10) ? '0' + min : min;
-    if (hour > 0) {
-      return hour + ':' + min + ':' + sec;
-    }
-    return min + ':' + sec;
-  };
-  return {
-    niceTimestamp : niceTimestamp,
-  };
+// requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
+// MIT license
+// https://gist.github.com/paulirish/1579671
+(function() {
+  var lastTime = 0;
+  var vendors = ['ms', 'moz', 'webkit', 'o'];
+  for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+    window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+    window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame']
+    || window[vendors[x]+'CancelRequestAnimationFrame'];
+  }
+  if (!window.requestAnimationFrame)
+    window.requestAnimationFrame = function(callback, element) {
+      var currTime = new Date().getTime();
+      var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+      var id = window.setTimeout(function() { callback(currTime + timeToCall); },
+      timeToCall);
+      lastTime = currTime + timeToCall;
+      return id;
+    };
+  if (!window.cancelAnimationFrame)
+    window.cancelAnimationFrame = function(id) {
+      clearTimeout(id);
+    };
 }());
-var Html = (function () {
-  var myContainer, subContainer, myPlayer, myPrefix, settings;
-  var createSeekClickHandler = function (time) {
-    return function (e) {
-      myPlayer.currentTime(time);
+
+// Object.create() polyfill
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create#Polyfill
+if (typeof Object.create != 'function') {
+  Object.create = (function() {
+    var Object = function() {};
+    return function (prototype) {
+      if (arguments.length > 1) {
+        throw Error('Second argument not supported');
+      }
+      if (typeof prototype != 'object') {
+        throw TypeError('Argument must be an object');
+      }
+      Object.prototype = prototype;
+      var result = new Object();
+      Object.prototype = null;
+      return result;
+    };
+  })();
+}
+
+// forEach polyfill
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach#Polyfill
+if (!Array.prototype.forEach) {
+  Array.prototype.forEach = function(callback, thisArg) {
+    var T, k;
+    if (this == null) {
+      throw new TypeError(' this is null or not defined');
+    }
+    var O = Object(this);
+    var len = O.length >>> 0;
+    if (typeof callback != "function") {
+      throw new TypeError(callback + ' is not a function');
+    }
+    if (arguments.length > 1) {
+      T = thisArg;
+    }
+    k = 0;
+    while (k < len) {
+      var kValue;
+      if (k in O) {
+        kValue = O[k];
+        callback.call(T, kValue, k, O);
+      }
+      k++;
+    }
+  };
+}
+
+// Global settings
+var my = {};
+my.settings = {};
+my.prefix = 'transcript';
+my.player = this;
+
+// Defaults
+var defaults = {
+  autoscroll: true,
+  clickArea: 'line'
+};
+
+/*global my*/
+var utils = (function (plugin) {
+  return {
+    secondsToTime: function (timeInSeconds) {
+      var hour = Math.floor(timeInSeconds / 3600);
+      var min = Math.floor(timeInSeconds % 3600 / 60);
+      var sec = Math.floor(timeInSeconds % 60);
+      sec = (sec < 10) ? '0' + sec : sec;
+      min = (hour > 0 && min < 10) ? '0' + min : min;
+      if (hour > 0) {
+        return hour + ':' + min + ':' + sec;
+      }
+      return min + ':' + sec;
+    },
+    localize: function (string) {
+      return string; // TODO: do something here;
+    },
+    createEl: function (elementName, classSuffix) {
+      classSuffix = classSuffix || '';
+      var el = document.createElement(elementName);
+      el.className = plugin.prefix + classSuffix;
+      return el;
+    }
+  };
+}(my));
+
+var eventEmitter = {
+  handlers_: [],
+  on: function on (object, eventtype, callback) {
+    if (typeof callback === 'function') {
+      this.handlers_.push([object, eventtype, callback]);
+    } else {
+      throw new TypeError('Callback is not a function.');
+    }
+  },
+  trigger: function trigger (object, eventtype) {
+    this.handlers_.forEach( function(h) {
+      if (h[0] === object &&
+          h[1] === eventtype) {
+            h[2].apply();
+      }
+    });
+  }
+};
+
+/*global my*/
+var scrollable = function (plugin) {
+'use strict';
+  var scrollablePrototype = function() {
+    var easeOut = function (time, start, change, duration) {
+      return start + change * Math.sin(Math.min(1, time / duration) * (Math.PI / 2));
+    };
+
+    // Animate the scrolling.
+    var scrollTo = function (element, newPos, duration) {
+      var startTime = Date.now();
+      var startPos = element.scrollTop;
+
+      // Don't try to scroll beyond the limits. You won't get there and this will loop forever.
+      newPos = Math.max(0, newPos);
+      newPos = Math.min(element.scrollHeight - element.clientHeight, newPos);
+      var change = newPos - startPos;
+
+      // This inner function is called until the elements scrollTop reaches newPos.
+      var updateScroll = function () {
+        var now = Date.now();
+        var time = now - startTime;
+        this.isAutoScrolling = true;
+        element.scrollTop = this.easeOut(time, startPos, change, duration);
+        if (element.scrollTop !== newPos) {
+          requestAnimationFrame(updateScroll, element);
+        }
+      };
+      requestAnimationFrame(updateScroll, element);
+    };
+
+    return {
+      // Scroll an element's parent so the element is brought into view.
+      scrollToElement: function (element) {
+        var parent = element.parentElement;
+        var parentOffsetBottom = parent.offsetTop + parent.clientHeight;
+        var elementOffsetBottom = element.offsetTop + element.clientHeight;
+        var relPos = (element.offsetTop + element.clientHeight) - parent.offsetTop;
+        var newPos;
+
+        // If the line is above the top of the parent view, were scrolling up,
+        // so we want to move the top of the element downwards to match the top of the parent.
+        if (relPos < parent.scrollTop) {
+          newPos = element.offsetTop - parent.offsetTop;
+
+        // If the line is below the parent view, we're scrolling down, so we want the
+        // bottom edge of the line to move up to meet the bottom edge of the parent.
+        } else if (relPos > (parent.scrollTop + parent.clientHeight)) {
+          newPos = elementOffsetBottom - parentOffsetBottom;
+        }
+
+        // Don't try to scroll if we haven't set a new position.  If we didn't
+        // set a new position the line is already in view (i.e. It's not above
+        // or below the view)
+        // And don't try to scroll when the element is already in position.
+        if (newPos !== undefined && parent.scrollTop !== newPos) {
+          scrollTo(parent, newPos, 400);
+        }
+      },
+
+      initHandlers: function () {
+        var el = this.element;
+        // The scroll event. We want to keep track of when the user is scrolling the transcript.
+        el.addEventListener('scroll', function () {
+          if (this.isAutoScrolling) {
+
+            // If isAutoScrolling was set to true, we can set it to false and then ignore this event.
+            this.isAutoScrolling = false; // event handled
+          } else {
+
+            // We only care about when the user scrolls. Set userIsScrolling to true and add a nice class.
+            this.userIsScrolling = true;
+            el.classList.add('is-inuse');
+          }
+        });
+
+        // The mouseover event.
+        el.addEventListener('mouseover', function () {
+          this.mouseIsOverTranscript = true;
+        });
+        el.addEventListener('mouseout', function () {
+          this.mouseIsOverTranscript = false;
+
+          // Have a small delay before deciding user as done interacting.
+          setTimeout(function () {
+
+            // Make sure the user didn't move the pointer back in.
+            if (!this.mouseIsOverTranscript) {
+              this.userIsScrolling = false;
+              el.classList.remove('is-inuse');
+            }
+          }, 1000);
+        });
+      },
+
+      // Return whether the element is scrollable.
+      canScroll: function () {
+        var el = this.element;
+        return el.scrollHeight > el.offsetHeight;
+      },
+
+      // Return whether the user is interacting with the transcript.
+      inUse: function () {
+        return this.userIsScrolling;
+      },
+      el: function () {
+        return this.element;
+      },
     };
   };
+  //Factory function
+  var createScrollable = function (element) {
+    var ob = Object.create(scrollablePrototype());
+    ob.element = element;
+    // defaults
+    ob.userIsScrolling = false;
+    ob.mouseIsOver = false;
+    ob.isAutoScrolling = true;
+    return ob;
+  };
+  return {
+    create: createScrollable
+  };
+}(my);
+
+
+/*global my*/
+var trackList = function (plugin) {
+  var activeTrack;
+  return {
+    get: function () {
+      var validTracks = [];
+      my.tracks = my.player.textTracks();
+      my.tracks.forEach(function (track) {
+        if (track.kind() === 'captions' || track.kind() === 'subtitles') {
+          validTracks.push(track);
+        }
+      });
+      return validTracks;
+    },
+    active: function (tracks) {
+      tracks.forEach(function (track) {
+        if (track.mode() === 2) {
+          activeTrack = track;
+          return track;
+        }
+      });
+      // fallback to first track
+      return activeTrack || tracks[0];
+    },
+  };
+}(my);
+
+/*globals utils, eventEmitter, my, scrollable*/
+var selectorWidget = function (plugin) {
+  var on = function (event, callback) {
+    eventEmitter.on(this, event, callback);
+  };
+  var trigger = function(event) {
+    eventEmitter.trigger(this, event);
+  };
+  var create = function () {
+    var select = utils.createEl('select', '-selector');
+    plugin.validTracks.forEach(function (track, i) {
+      var option = document.createElement('option');
+      option.value = i;
+      option.textContent = track.label() + ' (' + track.language() + ')';
+      select.appendChild(option);
+    });
+    select.addEventListener('change', function (e) {
+      trigger('change');
+    });
+    return select;
+  };
+  return {
+    create: create,
+    on: on
+  };
+}(my);
+
+var transcriptWidget = function (plugin) {
+  'use strict';
 
   var createLine = function (cue) {
-    var line = document.createElement('div');
-    var timestamp = document.createElement('span');
-    var text = document.createElement('span');
-    line.className = myPrefix + '-line';
+    var line = utils.createEl('div', '-line');
+    var timestamp = utils.createEl('span', '-timestamp');
+    var text = utils.createEl('span', '-text');
     line.setAttribute('data-begin', cue.startTime);
-    timestamp.className = myPrefix + '-timestamp';
-    timestamp.textContent = Utils.niceTimestamp(cue.startTime);
-    text.className = myPrefix + '-text';
+    timestamp.textContent = utils.secondsToTime(cue.startTime);
     text.innerHTML = cue.text;
     line.appendChild(timestamp);
     line.appendChild(text);
     return line;
   };
-  var setTrack = function (track) {
+
+  var createTranscriptBody = function (track) {
     if (typeof track !== 'object') {
-      track = myPlayer.textTracks()[track];
+      track = plugin.player.textTracks()[track];
     }
-    if (subContainer === undefined) {
-      throw new Error('videojs-transcript: Html not initialized!');
-    }
+    var body = scrollable.create(utils.createEl('div', '-body'));
+    var el = body.element;
     var line, i;
     var fragment = document.createDocumentFragment();
     var createTranscript = function () {
       var cues = track.cues();
       for (i = 0; i < cues.length; i++) {
-        line = createLine(cues[i], myPrefix);
+        line = createLine(cues[i]);
         fragment.appendChild(line);
       }
-      subContainer.innerHTML = '';
-      subContainer.appendChild(fragment);
-      subContainer.setAttribute('lang', track.language());
+      el.innerHTML = '';
+      el.appendChild(fragment);
+      el.setAttribute('lang', track.language());
     };
-    subContainer.addEventListener('click', function (event) {
-      var clickedClasses = event.target.classList;
-      var clickedTime = event.target.getAttribute('data-begin') || event.target.parentElement.getAttribute('data-begin');
-      if (clickedTime !== undefined && clickedTime !== null) { // can be zero
-        if ((settings.clickArea === 'line') || // clickArea: 'line' activates on all elements 
-             (settings.clickArea === 'timestamp' && clickedClasses.contains(myPrefix + '-timestamp')) ||
-               (settings.clickArea === 'text' && clickedClasses.contains(myPrefix + '-text'))) {
-          myPlayer.currentTime(clickedTime);
-        }
-      }
-    });
-    if (track.readyState() !== 2) {
-      track.load();
-      track.on('loaded', createTranscript);
-    } else {
-      createTranscript();
-    }
   };
-  var createSelector = function (tracks) {
-    var select =  document.createElement('select');
-    var i, track, option;
-    for (i = 0; i < tracks.length; i++) {
-      track = tracks[i];
-      option = document.createElement('option');
-      option.value = i;
-      option.textContent = track.label() + ' (' + track.language() + ')';
-      select.appendChild(option);
-    }
-    select.addEventListener('change', function (e) {
-      setTrack(document.querySelector('#' + myPrefix + '-' + myPlayer.id() + ' option:checked').value);
-    });
-    return select;
+
+  var createTitle = function () {
+    var header = utils.createEl('header', '-header');
+    header.textContent = utils.localize('Transcript');
+    return header;
   };
-  var init = function (container, player, prefix, plugin) {
-    myContainer = container;
-    myPlayer = player;
-    myPrefix = prefix;
-    subContainer = document.createElement('div');
-    settings = plugin.options;
-    myContainer.className = prefix;
-    subContainer.className = prefix + '-lines';
-    myContainer.id = myPrefix + '-' + myPlayer.id();
-    myContainer.appendChild(createSelector(myPlayer.textTracks()));
-    myContainer.appendChild(subContainer);
+
+  var createTranscript = function () {
+    var el = document.createElement('div');
+    el.setAttribute('id', plugin.prefix + '-' + plugin.player.id());
+    var title = createTitle();
+    var selector = selectorWidget.create();
+    var body = scrollable.create(createTranscriptBody(plugin.currentTrack));
+    el.appendChild(title);
+    el.appendChild(selector);
+    el.appendChild(body.element);
+    this.element = el;
+    return el;
   };
+
+  //need to implement these methods
+  var setTrack = function () {
+
+  };
+  var setCue = function () {
+
+  };
+  var el = function () {
+    return this.element;
+  };
+
   return {
-    init: init,
+    create: createTranscript,
     setTrack: setTrack,
-  };
-}());
-var Scroller = (function () {
-
-// Keep track when the user is scrolling the transcript.
-
-  var userIsScrolling = false;
-
-// Keep track of when the mouse is hovering the transcript.
-
-  var mouseIsOverTranscript = false;
-
-// The initial element creation triggers a scroll event. We don't want to consider 
-// this as the user scrolling, so we initialize the isAutoScrolling flag to true.
-
-  var isAutoScrolling = true;
-
-// requestAnimationFrame compatibility shim.
-
-  var requestAnimationFrame =
-    window.requestAnimationFrame       ||
-    window.webkitRequestAnimationFrame ||
-    window.msRequestAnimationFrame     ||
-    window.mozRequestAnimationFrame    ||
-    window.oRequestAnimationFrame      ||
-    function (callback) {
-      window.setTimeout(callback, 1000 / 60);
-    };
-
-// For smooth animation.
-
-  var easeOut = function (time, start, change, duration) {
-    return start + change * Math.sin(Math.min(1, time / duration) * (Math.PI / 2));
+    setCue: setCue,
+    el : el
   };
 
-// Animate the scrolling.
+}(my);
 
-  var scrollTo = function (element, newPos, duration) {
-    var startTime = Date.now();
-    var startPos = element.scrollTop;
-
-// Don't try to scroll beyond the limits. You won't get there and this will loop forever.
-
-    newPos = Math.max(0, newPos);
-    newPos = Math.min(element.scrollHeight - element.clientHeight, newPos);
-    var change = newPos - startPos;
-
-// This inner function is called until the elements scrollTop reaches newPos.
-
-    var updateScroll = function () {
-      var now = Date.now();
-      var time = now - startTime;
-      isAutoScrolling = true;
-      element.scrollTop = easeOut(time, startPos, change, duration);
-      if (element.scrollTop !== newPos) {
-        requestAnimationFrame(updateScroll, element);
-      }
-    };
-    requestAnimationFrame(updateScroll, element);
+var transcript = function (options) {
+  my.player = this;
+  my.validTracks = trackList.get();
+  my.settings = videojs.util.mergeOptions(defaults, options);
+  my.widget = transcriptWidget.create();
+  var timeUpdate = function () {
+    my.widget.setCue(my.player.currentTime());
   };
-
-// Scroll an element's parent so the element is brought into view. 
-
-  var scrollToElement = function (element) {
-    var parent = element.parentElement;
-    var parentOffsetBottom = parent.offsetTop + parent.clientHeight;
-    var elementOffsetBottom = element.offsetTop + element.clientHeight;
-    var relPos = (element.offsetTop + element.clientHeight) - parent.offsetTop;
-    var newPos;
-
-// If the line is above the top of the parent view, were scrolling up, 
-// so we want to move the top of the element downwards to match the top of the parent.
-
-    if (relPos < parent.scrollTop) {
-      newPos = element.offsetTop - parent.offsetTop;
-
-// If the line is below the parent view, we're scrolling down, so we want the
-// bottom edge of the line to move up to meet the bottom edge of the parent.
-
-    } else if (relPos > (parent.scrollTop + parent.clientHeight)) {
-      newPos = elementOffsetBottom - parentOffsetBottom;
-    }
-
-// Don't try to scroll if we haven't set a new position.  If we didn't
-// set a new position the line is already in view (i.e. It's not above
-// or below the view)
-// And don't try to scroll when the element is already in position.
-
-    if (newPos !== undefined && parent.scrollTop !== newPos) {
-      scrollTo(parent, newPos, 400);
-    }
+  var updateTrack = function () {
+    my.currentTrack = trackList.active();
+    my.widget.setTrack(my.currentTrack);
   };
-
-// Set Event Handlers to monitor user scrolling.
-
-  var initHandlers = function (element) {
-
-// The scroll event. We want to keep track of when the user is scrolling the transcript.
-
-    element.addEventListener('scroll', function () {
-      if (isAutoScrolling) {
-
-// If isAutoScrolling was set to true, we can set it to false and then ignore this event.
-
-        isAutoScrolling = false; // event handled
-      } else {
-
-// We only care about when the user scrolls. Set userIsScrolling to true and add a nice class.
-
-        userIsScrolling = true;
-        element.classList.add('is-inuse');
-      }
-    });
-
-// The mouseover event.
-
-    element.addEventListener('mouseover', function () {
-      mouseIsOverTranscript = true;
-    });
-    element.addEventListener('mouseout', function () {
-      mouseIsOverTranscript = false;
-
-// Have a small delay before deciding user as done interacting.
-
-      setTimeout(function () {
-
-// Make sure the user didn't move the pointer back in. 
-
-        if (!mouseIsOverTranscript) {
-          userIsScrolling = false;
-          element.classList.remove('is-inuse');
-        }
-      }, 1000);
-    });
-  };
-
-// Return whether the element is scrollable.
-
-  var canScroll = function (container) {
-    return container.scrollHeight > container.offsetHeight;
-  };
-
-// Return whether the user is interacting with the transcript.
-
-  var inUse = function () {
-    return userIsScrolling;
-  };
-
-// Public Methods
-
+  if (my.validTracks.length > 0) {
+    updateTrack();
+    my.player.on('timeupdate', timeUpdate);
+    my.player.on('captionstrackchange', updateTrack);
+    my.player.on('subtitlestrackchange', updateTrack);
+  } else {
+    throw new Error('videojs-transcript: No tracks found!');
+  }
   return {
-    scrollToElement : scrollToElement,
-    initHandlers : initHandlers,
-    inUse : inUse,
-    canScroll : canScroll,
+    el: my.widget.el,
+    setTrack: my.widget.setTrack,
   };
-}());
-var Plugin = (function (window, videojs) {
-  var defaults = {
-    autoscroll: true,
-    clickArea: 'line'
-  };
+};
+videojs.plugin('transcript', transcript);
 
-  var transcript = function (options) {
-    var settings = videojs.util.mergeOptions(defaults, options);
-    var player = this;
-    var htmlPrefix = 'transcript';
-    var htmlContainer = document.createElement('div');
-    var tracks;
-    var currentTrack;
-    var getAllTracks = function () {
-      var i, kind;
-      var validTracks = [];
-      tracks = player.textTracks();
-      for (i = 0; i < tracks.length; i++) {
-        kind = tracks[i].kind();
-        if (kind === 'captions' || kind === 'subtitles') {
-          validTracks.push(tracks[i]);
-        }
-      }
-      return validTracks;
-    };
-    var getActiveTrack = function (tracks) {
-      var i;
-      for (i = 0; i < tracks.length; i++) {
-        if (tracks[i].mode() === 2) {
-          return tracks[i];
-        }
-      }
-      return currentTrack || tracks[0];
-    };
-    var getCaptionNodes = function () {
-      var i, node, caption;
-      var nodes = document.querySelectorAll('#' + htmlContainer.id + ' > .' + htmlPrefix + '-line');
-      var captions = [];
-      for (i = 0; i < nodes.length; i++) {
-        node = nodes[i];
-        caption = {
-          'element': node,
-          'begin': node.getAttribute('data-begin'),
-        };
-        captions.push(caption);
-      }
-      return captions;
-    };
-    var timeUpdate = function () {
-      var caption, end, i;
-      var time = player.currentTime();
-      var captions = getCaptionNodes();
-      for (i = 0; i < captions.length; i++) {
-        caption = captions[i];
-        // Remain active until next caption.
-        // On final caption, remain active until video duration if known, or forever;
-        if (i < captions.length - 1) {
-          end = captions[i + 1].begin;
-        } else {
-          end = player.duration() || Infinity;
-        }
-        if (time > caption.begin && time < end) {
-          if (!caption.element.classList.contains('is-active')) { // don't update if it hasn't changed
-            caption.element.classList.add('is-active');
-            if (settings.autoscroll &&
-                Scroller.canScroll(htmlContainer) &&
-                !Scroller.inUse()) {
-              Scroller.scrollToElement(caption.element);
-            }
-          }
-        } else {
-          caption.element.classList.remove('is-active');
-        }
-      }
-    };
-    var trackChange = function () {
-      currentTrack = getActiveTrack(tracks);
-      Html.setTrack(currentTrack);
-    };
-    tracks = getAllTracks();
-    if (tracks.length > 0) {
-      Html.init(htmlContainer, player, htmlPrefix, this);
-      Scroller.initHandlers(htmlContainer);
-      trackChange();
-      player.on('timeupdate', timeUpdate);
-      player.on('captionstrackchange', trackChange);
-      player.on('subtitlestrackchange', trackChange);
-    } else {
-      throw new Error('videojs-transcript: No tracks found!');
-    }
-    var el = function () {
-      return htmlContainer;
-    };
-    return {
-      el: el,
-      setTrack: trackChange,
-      options: options,
-    };
-  };
-  return {transcript: transcript};
 }(window, videojs));
-
-  videojs.plugin('transcript', Plugin.transcript);
-}(window, window.videojs));

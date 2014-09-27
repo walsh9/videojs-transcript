@@ -115,9 +115,8 @@ var scrollable = function (plugin) {
   };
   //Factory function
   var createScrollable = function (element) {
-    var ob = Object.create(scrollablePrototype);
+    var ob = Object.create(scrollablePrototype());
     ob.element = element;
-
     // defaults
     ob.userIsScrolling = false;
     ob.mouseIsOver = false;
