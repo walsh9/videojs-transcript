@@ -5,8 +5,9 @@
 /*globals utils, eventEmitter, my, scrollable*/
 
 var widget = function (plugin) {
-  var element = {};
-  var body = {};
+  var my = {};
+  my.element = {};
+  my.body = {};
   var on = function (event, callback) {
     eventEmitter.on(this, event, callback);
   };
@@ -27,7 +28,8 @@ var widget = function (plugin) {
       selector.appendChild(option);
     });
     selector.addEventListener('change', function (e) {
-        trigger('trackchanged');
+      setTrack(document.querySelector('#' + plugin.prefix + '-' + plugin.player.id() + ' option:checked').value);
+      trigger('trackchanged');
     });
     return selector;
   };
@@ -43,7 +45,6 @@ var widget = function (plugin) {
     return line;
   };
   var createTranscriptBody = function (track) {
-    //console.log(track.cues());
     if (typeof track !== 'object') {
       track = plugin.player.textTracks()[track];
     }
@@ -51,7 +52,6 @@ var widget = function (plugin) {
     var line, i;
     var fragment = document.createDocumentFragment();
     var createTranscript = function () {
-      console.log(track);
       var cues = track.cues();
       for (i = 0; i < cues.length; i++) {
         line = createLine(cues[i]);
@@ -71,24 +71,28 @@ var widget = function (plugin) {
   };
   var create = function () {
     var el = document.createElement('div');
+    my.element = el;
     el.setAttribute('id', plugin.prefix + '-' + plugin.player.id());
     var title = createTitle();
-    var selector = createSelector();
-    this.body = createTranscriptBody(plugin.currentTrack);
     el.appendChild(title);
+    var selector = createSelector();
     el.appendChild(selector);
-    el.appendChild(this.body);
-    this.element = el;
+    my.body = utils.createEl('div', '-body');
+    el.appendChild(my.body);
+    setTrack(plugin.currentTrack);
     return this;
   };
   var setTrack = function (track) {
-    this.body = createTranscriptBody(track);
+    var newBody = createTranscriptBody(track);
+    my.element.insertBefore(newBody, my.body);
+    my.element.removeChild(my.body);
+    my.body = newBody;
   };
   var setCue = function () {
   //need to implement
   };
   var el = function () {
-    return this.element;
+    return my.element;
   };
   return {
     create: create,
