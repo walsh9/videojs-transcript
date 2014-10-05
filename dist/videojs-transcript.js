@@ -1,4 +1,4 @@
-/*! videojs-transcript - v0.0.0 - 2014-09-26
+/*! videojs-transcript - v0.0.0 - 2014-10-05
 * Copyright (c) 2014 Matthew Walsh; Licensed MIT */
 (function (window, videojs) {
   'use strict';
@@ -112,6 +112,20 @@ var utils = (function (plugin) {
       var el = document.createElement(elementName);
       el.className = plugin.prefix + classSuffix;
       return el;
+    },
+    extend: function(obj) {
+      var type = typeof obj;
+      if (!(type === 'function' || type === 'object' && !!obj)) {
+        return obj;
+      }
+      var source, prop;
+      for (var i = 1, length = arguments.length; i < length; i++) {
+        source = arguments[i];
+        for (prop in source) {
+          obj[prop] = source[prop];
+        }
+      }
+      return obj;
     }
   };
 }(my));
@@ -132,19 +146,28 @@ var eventEmitter = {
             h[2].apply();
       }
     });
+  },
+  delegate: function (obj) {
+    obj.on = function (event, callback) {
+      eventEmitter.on(obj, event, callback);
+    };
+    obj.trigger = function (obj) {
+      eventEmitter.trigget(obj, event);
+    };
+    return obj;
   }
 };
 
-/*global my*/
+/*global my, utils*/
 var scrollable = function (plugin) {
 'use strict';
-  var scrollablePrototype = function() {
-    var easeOut = function (time, start, change, duration) {
+  var scrollablePrototype = {
+    easeOut: function (time, start, change, duration) {
       return start + change * Math.sin(Math.min(1, time / duration) * (Math.PI / 2));
-    };
+    },
 
     // Animate the scrolling.
-    var scrollTo = function (element, newPos, duration) {
+    scrollTo: function (element, newPos, duration) {
       var startTime = Date.now();
       var startPos = element.scrollTop;
 
@@ -164,9 +187,7 @@ var scrollable = function (plugin) {
         }
       };
       requestAnimationFrame(updateScroll, element);
-    };
-
-    return {
+    },
       // Scroll an element's parent so the element is brought into view.
       scrollToElement: function (element) {
         var parent = element.parentElement;
@@ -243,16 +264,18 @@ var scrollable = function (plugin) {
       el: function () {
         return this.element;
       },
-    };
   };
   //Factory function
   var createScrollable = function (element) {
-    var ob = Object.create(scrollablePrototype());
-    ob.element = element;
-    // defaults
-    ob.userIsScrolling = false;
-    ob.mouseIsOver = false;
-    ob.isAutoScrolling = true;
+    var ob = Object.create(scrollablePrototype)
+    console.log(ob);
+    utils.extend(ob, {
+      element: element,
+      userIsScrolling : false,
+      mouseIsOver: false,
+      isAutoScrolling: true,
+    });
+    console.log(ob);
     return ob;
   };
   return {
@@ -289,35 +312,34 @@ var trackList = function (plugin) {
 }(my);
 
 /*globals utils, eventEmitter, my, scrollable*/
-var selectorWidget = function (plugin) {
+
+var widget = function (plugin) {
+  var element = {};
+  var body = {};
   var on = function (event, callback) {
     eventEmitter.on(this, event, callback);
   };
-  var trigger = function(event) {
+  var trigger = function (event) {
     eventEmitter.trigger(this, event);
   };
-  var create = function () {
-    var select = utils.createEl('select', '-selector');
-    plugin.validTracks.forEach(function (track, i) {
+  var createTitle = function () {
+    var header = utils.createEl('header', '-header');
+    header.textContent = utils.localize('Transcript');
+    return header;
+  };
+  var createSelector = function (){
+    var selector = utils.createEl('select', '-selector');
+      plugin.validTracks.forEach(function (track, i) {
       var option = document.createElement('option');
       option.value = i;
       option.textContent = track.label() + ' (' + track.language() + ')';
-      select.appendChild(option);
+      selector.appendChild(option);
     });
-    select.addEventListener('change', function (e) {
-      trigger('change');
+    selector.addEventListener('change', function (e) {
+        trigger('trackchanged');
     });
-    return select;
+    return selector;
   };
-  return {
-    create: create,
-    on: on
-  };
-}(my);
-
-var transcriptWidget = function (plugin) {
-  'use strict';
-
   var createLine = function (cue) {
     var line = utils.createEl('div', '-line');
     var timestamp = utils.createEl('span', '-timestamp');
@@ -329,62 +351,61 @@ var transcriptWidget = function (plugin) {
     line.appendChild(text);
     return line;
   };
-
   var createTranscriptBody = function (track) {
+    //console.log(track.cues());
     if (typeof track !== 'object') {
       track = plugin.player.textTracks()[track];
     }
-    var body = scrollable.create(utils.createEl('div', '-body'));
-    var el = body.element;
+    var body = utils.createEl('div', '-body');
     var line, i;
     var fragment = document.createDocumentFragment();
     var createTranscript = function () {
+      console.log(track);
       var cues = track.cues();
       for (i = 0; i < cues.length; i++) {
         line = createLine(cues[i]);
         fragment.appendChild(line);
       }
-      el.innerHTML = '';
-      el.appendChild(fragment);
-      el.setAttribute('lang', track.language());
+      body.innerHTML = '';
+      body.appendChild(fragment);
+      body.setAttribute('lang', track.language());
     };
+    if (track.readyState() !==2) {
+      track.load();
+      track.on('loaded', createTranscript);
+    } else {
+      createTranscript();
+    }
+    return body;
   };
-
-  var createTitle = function () {
-    var header = utils.createEl('header', '-header');
-    header.textContent = utils.localize('Transcript');
-    return header;
-  };
-
-  var createTranscript = function () {
+  var create = function () {
     var el = document.createElement('div');
     el.setAttribute('id', plugin.prefix + '-' + plugin.player.id());
     var title = createTitle();
-    var selector = selectorWidget.create();
-    var body = scrollable.create(createTranscriptBody(plugin.currentTrack));
+    var selector = createSelector();
+    this.body = createTranscriptBody(plugin.currentTrack);
     el.appendChild(title);
     el.appendChild(selector);
-    el.appendChild(body.element);
+    el.appendChild(this.body);
     this.element = el;
-    return el;
+    return this;
   };
-
-  //need to implement these methods
-  var setTrack = function () {
-
+  var setTrack = function (track) {
+    this.body = createTranscriptBody(track);
   };
   var setCue = function () {
-
+  //need to implement
   };
   var el = function () {
     return this.element;
   };
-
   return {
-    create: createTranscript,
+    create: create,
     setTrack: setTrack,
     setCue: setCue,
-    el : el
+    el : el,
+    on: on,
+    trigger: trigger,
   };
 
 }(my);
@@ -392,13 +413,14 @@ var transcriptWidget = function (plugin) {
 var transcript = function (options) {
   my.player = this;
   my.validTracks = trackList.get();
+  my.currentTrack = trackList.active(my.validTracks);
   my.settings = videojs.util.mergeOptions(defaults, options);
-  my.widget = transcriptWidget.create();
+  my.widget = widget.create();
   var timeUpdate = function () {
     my.widget.setCue(my.player.currentTime());
   };
   var updateTrack = function () {
-    my.currentTrack = trackList.active();
+    my.currentTrack = trackList.active(my.validTracks);
     my.widget.setTrack(my.currentTrack);
   };
   if (my.validTracks.length > 0) {
@@ -410,8 +432,10 @@ var transcript = function (options) {
     throw new Error('videojs-transcript: No tracks found!');
   }
   return {
-    el: my.widget.el,
-    setTrack: my.widget.setTrack,
+    el: function () {
+      return my.widget.el();
+    },
+    setTrack: my.widget.setTrack
   };
 };
 videojs.plugin('transcript', transcript);

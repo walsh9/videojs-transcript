@@ -3,16 +3,16 @@
  *  Need to clean up some unneccesarily exposed methods later...
  */
 
-/*global my*/
+/*global my, utils*/
 var scrollable = function (plugin) {
 'use strict';
-  var scrollablePrototype = function() {
-    var easeOut = function (time, start, change, duration) {
+  var scrollablePrototype = {
+    easeOut: function (time, start, change, duration) {
       return start + change * Math.sin(Math.min(1, time / duration) * (Math.PI / 2));
-    };
+    },
 
     // Animate the scrolling.
-    var scrollTo = function (element, newPos, duration) {
+    scrollTo: function (element, newPos, duration) {
       var startTime = Date.now();
       var startPos = element.scrollTop;
 
@@ -32,9 +32,7 @@ var scrollable = function (plugin) {
         }
       };
       requestAnimationFrame(updateScroll, element);
-    };
-
-    return {
+    },
       // Scroll an element's parent so the element is brought into view.
       scrollToElement: function (element) {
         var parent = element.parentElement;
@@ -111,16 +109,18 @@ var scrollable = function (plugin) {
       el: function () {
         return this.element;
       },
-    };
   };
   //Factory function
   var createScrollable = function (element) {
-    var ob = Object.create(scrollablePrototype());
-    ob.element = element;
-    // defaults
-    ob.userIsScrolling = false;
-    ob.mouseIsOver = false;
-    ob.isAutoScrolling = true;
+    var ob = Object.create(scrollablePrototype)
+    console.log(ob);
+    utils.extend(ob, {
+      element: element,
+      userIsScrolling : false,
+      mouseIsOver: false,
+      isAutoScrolling: true,
+    });
+    console.log(ob);
     return ob;
   };
   return {

@@ -24,6 +24,20 @@ var utils = (function (plugin) {
       var el = document.createElement(elementName);
       el.className = plugin.prefix + classSuffix;
       return el;
+    },
+    extend: function(obj) {
+      var type = typeof obj;
+      if (!(type === 'function' || type === 'object' && !!obj)) {
+        return obj;
+      }
+      var source, prop;
+      for (var i = 1, length = arguments.length; i < length; i++) {
+        source = arguments[i];
+        for (prop in source) {
+          obj[prop] = source[prop];
+        }
+      }
+      return obj;
     }
   };
 }(my));
