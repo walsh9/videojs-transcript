@@ -67,6 +67,8 @@ var widget = function (plugin) {
     } else {
       createTranscript();
     }
+    body.scroll = scroller(body);
+    console.log(scroller(body));
     return body;
   };
   var create = function () {
@@ -84,12 +86,31 @@ var widget = function (plugin) {
   };
   var setTrack = function (track) {
     var newBody = createTranscriptBody(track);
-    my.element.insertBefore(newBody, my.body);
-    my.element.removeChild(my.body);
+    my.element.replaceChild(newBody, my.body);
     my.body = newBody;
   };
-  var setCue = function () {
-  //need to implement
+  var setCue = function (time) {
+    var active, i, line, begin, end;
+    var lines = my.body.children;
+    for (i = 0; i < lines.length; i++) {
+      line = lines[i];
+      begin = line.getAttribute('data-begin');
+      if (i < lines.length - 1) {
+        end = lines[i + 1].getAttribute('data-begin');
+      } else {
+        end = plugin.player.duration() || Infinity;
+      }
+      if (time > begin && time < end) {
+        if (!line.classList.contains('is-active')) { // don't update if it hasn't changed
+          line.classList.add('is-active');
+          if (plugin.settings.autoscroll && my.body.scroll.canScroll() && !my.body.scroll.inUse()) {
+              my.body.scroll.to(line);
+          }
+        }
+      } else {
+        line.classList.remove('is-active');
+      }
+    }
   };
   var el = function () {
     return my.element;

@@ -21,7 +21,7 @@ module.exports = function(grunt) {
               'src/options.js',
               'src/utils.js',
               'src/events.js',
-              'src/scrollable.js',
+              'src/scroller.js',
               'src/tracklist.js',
               'src/widget.js',
               'src/main.js',
