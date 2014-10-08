@@ -18,14 +18,5 @@ var eventEmitter = {
             h[2].apply();
       }
     });
-  },
-  delegate: function (obj) {
-    obj.on = function (event, callback) {
-      eventEmitter.on(obj, event, callback);
-    };
-    obj.trigger = function (obj) {
-      eventEmitter.trigget(obj, event);
-    };
-    return obj;
   }
 };
