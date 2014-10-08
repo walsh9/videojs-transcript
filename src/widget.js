@@ -33,6 +33,17 @@ var widget = function (plugin) {
     });
     return selector;
   };
+  var clickToSeekHandler = function (event) {
+    var clickedClasses = event.target.classList;
+    var clickedTime = event.target.getAttribute('data-begin') || event.target.parentElement.getAttribute('data-begin');
+    if (clickedTime !== undefined && clickedTime !== null) { // can be zero
+      if ((plugin.settings.clickArea === 'line') || // clickArea: 'line' activates on all elements
+        (plugin.settings.clickArea === 'timestamp' && clickedClasses.contains(myPrefix + '-timestamp')) ||
+        (plugin.settings.clickArea === 'text' && clickedClasses.contains(myPrefix + '-text'))) {
+        plugin.player.currentTime(clickedTime);
+      }
+    }
+  };
   var createLine = function (cue) {
     var line = utils.createEl('div', '-line');
     var timestamp = utils.createEl('span', '-timestamp');
@@ -68,7 +79,7 @@ var widget = function (plugin) {
       createTranscript();
     }
     body.scroll = scroller(body);
-    console.log(scroller(body));
+    body.addEventListener('click', clickToSeekHandler);
     return body;
   };
   var create = function () {
@@ -103,7 +114,7 @@ var widget = function (plugin) {
       if (time > begin && time < end) {
         if (!line.classList.contains('is-active')) { // don't update if it hasn't changed
           line.classList.add('is-active');
-          if (plugin.settings.autoscroll && my.body.scroll.canScroll() && !my.body.scroll.inUse()) {
+          if (plugin.settings.autoscroll && !my.body.scroll.inUse()) {
               my.body.scroll.to(line);
           }
         }

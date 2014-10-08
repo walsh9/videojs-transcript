@@ -1,4 +1,4 @@
-/*! videojs-transcript - v0.0.0 - 2014-10-06
+/*! videojs-transcript - v0.0.0 - 2014-10-08
 * Copyright (c) 2014 Matthew Walsh; Licensed MIT */
 (function (window, videojs) {
   'use strict';
@@ -159,35 +159,38 @@ var eventEmitter = {
 };
 
 var scrollerProto = function(plugin) {
-    var initHandlers = function (el) {
 
+
+  var initHandlers = function (el) {
+    var self = this;
     // The scroll event. We want to keep track of when the user is scrolling the transcript.
     el.addEventListener('scroll', function () {
-      if (this.isAutoScrolling) {
+      if (self.isAutoScrolling) {
 
         // If isAutoScrolling was set to true, we can set it to false and then ignore this event.
-        this.isAutoScrolling = false; // event handled
+        // It wasn't the user.
+        self.isAutoScrolling = false; // event handled
       } else {
 
         // We only care about when the user scrolls. Set userIsScrolling to true and add a nice class.
-        this.userIsScrolling = true;
+        self.userIsScrolling = true;
         el.classList.add('is-inuse');
       }
     });
 
     // The mouseover event.
-    el.addEventListener('mouseover', function () {
-      this.mouseIsOverTranscript = true;
+    el.addEventListener('mouseenter', function () {
+      self.mouseIsOverTranscript = true;
     });
-    el.addEventListener('mouseout', function () {
-      this.mouseIsOverTranscript = false;
+    el.addEventListener('mouseleave', function () {
+      self.mouseIsOverTranscript = false;
 
       // Have a small delay before deciding user as done interacting.
       setTimeout(function () {
 
         // Make sure the user didn't move the pointer back in.
-        if (!this.mouseIsOverTranscript) {
-          this.userIsScrolling = false;
+        if (!self.mouseIsOverTranscript) {
+          self.userIsScrolling = false;
           el.classList.remove('is-inuse');
         }
       }, 1000);
@@ -198,9 +201,9 @@ var scrollerProto = function(plugin) {
   var init = function (element, plugin) {
     this.element = element;
     this.userIsScrolling = false;
-    this.mouseIsOver = false;
+    this.mouseIsOverTranscript = false;
     this.isAutoScrolling = true;
-    initHandlers(this.element);
+    initHandlers.call(this, this.element);
     return this;
   };
 
@@ -213,6 +216,7 @@ var scrollerProto = function(plugin) {
   var scrollTo = function (element, newPos, duration) {
     var startTime = Date.now();
     var startPos = element.scrollTop;
+    var self = this;
 
     // Don't try to scroll beyond the limits. You won't get there and this will loop forever.
     newPos = Math.max(0, newPos);
@@ -223,7 +227,7 @@ var scrollerProto = function(plugin) {
     var updateScroll = function () {
       var now = Date.now();
       var time = now - startTime;
-      this.isAutoScrolling = true;
+      self.isAutoScrolling = true;
       element.scrollTop = easeOut(time, startPos, change, duration);
       if (element.scrollTop !== newPos) {
         requestAnimationFrame(updateScroll, element);
@@ -234,29 +238,31 @@ var scrollerProto = function(plugin) {
 
   // Scroll an element's parent so the element is brought into view.
   var scrollToElement = function (element) {
-    var parent = element.parentElement;
-    var parentOffsetBottom = parent.offsetTop + parent.clientHeight;
-    var elementOffsetBottom = element.offsetTop + element.clientHeight;
-    var relPos = (element.offsetTop + element.clientHeight) - parent.offsetTop;
-    var newPos;
+    if (this.canScroll()) {
+      var parent = element.parentElement;
+      var parentOffsetBottom = parent.offsetTop + parent.clientHeight;
+      var elementOffsetBottom = element.offsetTop + element.clientHeight;
+      var relPos = (element.offsetTop + element.clientHeight) - parent.offsetTop;
+      var newPos;
 
-    // If the line is above the top of the parent view, were scrolling up,
-    // so we want to move the top of the element downwards to match the top of the parent.
-    if (relPos < parent.scrollTop) {
-      newPos = element.offsetTop - parent.offsetTop;
+      // If the line is above the top of the parent view, were scrolling up,
+      // so we want to move the top of the element downwards to match the top of the parent.
+      if (relPos < parent.scrollTop) {
+        newPos = element.offsetTop - parent.offsetTop;
 
-    // If the line is below the parent view, we're scrolling down, so we want the
-    // bottom edge of the line to move up to meet the bottom edge of the parent.
-    } else if (relPos > (parent.scrollTop + parent.clientHeight)) {
-      newPos = elementOffsetBottom - parentOffsetBottom;
-    }
+      // If the line is below the parent view, we're scrolling down, so we want the
+      // bottom edge of the line to move up to meet the bottom edge of the parent.
+      } else if (relPos > (parent.scrollTop + parent.clientHeight)) {
+        newPos = elementOffsetBottom - parentOffsetBottom;
+      }
 
-    // Don't try to scroll if we haven't set a new position.  If we didn't
-    // set a new position the line is already in view (i.e. It's not above
-    // or below the view)
-    // And don't try to scroll when the element is already in position.
-    if (newPos !== undefined && parent.scrollTop !== newPos) {
-      scrollTo(parent, newPos, 400);
+      // Don't try to scroll if we haven't set a new position.  If we didn't
+      // set a new position the line is already in view (i.e. It's not above
+      // or below the view)
+      // And don't try to scroll when the element is already in position.
+      if (newPos !== undefined && parent.scrollTop !== newPos) {
+        scrollTo.call(this, parent, newPos, 400);
+      }
     }
   };
 
@@ -342,6 +348,17 @@ var widget = function (plugin) {
     });
     return selector;
   };
+  var clickToSeekHandler = function (event) {
+    var clickedClasses = event.target.classList;
+    var clickedTime = event.target.getAttribute('data-begin') || event.target.parentElement.getAttribute('data-begin');
+    if (clickedTime !== undefined && clickedTime !== null) { // can be zero
+      if ((plugin.settings.clickArea === 'line') || // clickArea: 'line' activates on all elements
+        (plugin.settings.clickArea === 'timestamp' && clickedClasses.contains(myPrefix + '-timestamp')) ||
+        (plugin.settings.clickArea === 'text' && clickedClasses.contains(myPrefix + '-text'))) {
+        plugin.player.currentTime(clickedTime);
+      }
+    }
+  };
   var createLine = function (cue) {
     var line = utils.createEl('div', '-line');
     var timestamp = utils.createEl('span', '-timestamp');
@@ -377,7 +394,7 @@ var widget = function (plugin) {
       createTranscript();
     }
     body.scroll = scroller(body);
-    console.log(scroller(body));
+    body.addEventListener('click', clickToSeekHandler);
     return body;
   };
   var create = function () {
@@ -412,7 +429,7 @@ var widget = function (plugin) {
       if (time > begin && time < end) {
         if (!line.classList.contains('is-active')) { // don't update if it hasn't changed
           line.classList.add('is-active');
-          if (plugin.settings.autoscroll && my.body.scroll.canScroll() && !my.body.scroll.inUse()) {
+          if (plugin.settings.autoscroll && !my.body.scroll.inUse()) {
               my.body.scroll.to(line);
           }
         }
