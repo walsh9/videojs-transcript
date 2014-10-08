@@ -17,9 +17,13 @@ module.exports = function(grunt) {
       },
       build: {
         src: ['src/intro.js',
+              'src/polyfill.js',
+              'src/options.js',
               'src/utils.js',
-              'src/html.js',
+              'src/events.js',
               'src/scroller.js',
+              'src/tracklist.js',
+              'src/widget.js',
               'src/main.js',
               'src/outro.js'],
         dest: 'dist/<%= pkg.name %>.js'
@@ -90,7 +94,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default',
                      ['clean',
-                      'jshint:src',
+                      //'jshint:src',
                       'concat',
                       'jshint:build',
                       'jshint:test',
