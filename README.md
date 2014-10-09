@@ -13,12 +13,13 @@ Creates interactive transcripts from text tracks.
 - [x] More CSS examples
 - [x] Handle multiple tracks
 - [x] Automatically switch caption track when user selects a different track on the video.
-- [ ] Separate track switcher 
+- [x] Separate track switcher 
 - [x] Autoscrolling transcript
 - [x] *Smooth*, animated scrolling 
 - [x] Clean up scrolling logic.
 - [x] Prevent autoscrolling when user is interacting with transcript (nice to have)
-- [ ] Tests!
+- [x] Tests!
+- [ ] More Tests!
 - [ ] More...
 
 ## Getting Started
