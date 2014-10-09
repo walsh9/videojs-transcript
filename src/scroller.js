@@ -1,9 +1,7 @@
 /*
  *  Scroller object to handle scrolling.
  */
-
 var scrollerProto = function(plugin) {
-
 
   var initHandlers = function (el) {
     var self = this;
@@ -45,7 +43,9 @@ var scrollerProto = function(plugin) {
   var init = function (element, plugin) {
     this.element = element;
     this.userIsScrolling = false;
-    this.mouseIsOverTranscript = false;
+
+    //default to true in case user isn't using a mouse;
+    this.mouseIsOverTranscript = true;
     this.isAutoScrolling = true;
     initHandlers.call(this, this.element);
     return this;
@@ -86,7 +86,7 @@ var scrollerProto = function(plugin) {
       var parent = element.parentElement;
       var parentOffsetBottom = parent.offsetTop + parent.clientHeight;
       var elementOffsetBottom = element.offsetTop + element.clientHeight;
-      var relPos = (element.offsetTop + element.clientHeight) - parent.offsetTop;
+      var relPos = element.offsetTop - parent.offsetTop;
       var newPos;
 
       // If the line is above the top of the parent view, were scrolling up,

@@ -7,7 +7,16 @@
 </head>
 <body>
   <div id="qunit"></div>
-  <div id="qunit-fixture"></div>
+  <div id="qunit-fixture">
+    <div id="scrollable-container" style="height:100px; overflow-y:scroll">
+      <div id="item1" style="height: 50px">1</div>
+      <div id="item2" style="height: 50px">2</div>
+      <div id="item3" style="height: 50px">3</div>
+      <div id="item4" style="height: 50px">4</div>
+    </div>
+    <div id="non-scrollable-container" style="height:100px;"></div>
+
+  </div>
   <script src="../node_modules/qunitjs/qunit/qunit.js"></script>
   <script>
     test('the environment is sane', function() {
@@ -15,6 +24,7 @@
     });
   </script>
   <script src="../node_modules/video.js/dist/video-js/video.js"></script>
+  <script src="../src/polyfill.js"></script>
   <script src="../src/options.js"></script>
   <script src="../src/events.js"></script>
   <script src="../src/tracklist.js"></script>
