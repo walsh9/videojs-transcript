@@ -38,8 +38,8 @@ var widget = function (plugin) {
     var clickedTime = event.target.getAttribute('data-begin') || event.target.parentElement.getAttribute('data-begin');
     if (clickedTime !== undefined && clickedTime !== null) { // can be zero
       if ((plugin.settings.clickArea === 'line') || // clickArea: 'line' activates on all elements
-        (plugin.settings.clickArea === 'timestamp' && clickedClasses.contains(myPrefix + '-timestamp')) ||
-        (plugin.settings.clickArea === 'text' && clickedClasses.contains(myPrefix + '-text'))) {
+        (plugin.settings.clickArea === 'timestamp' && clickedClasses.contains(plugin.prefix + '-timestamp')) ||
+        (plugin.settings.clickArea === 'text' && clickedClasses.contains(plugin.prefix + '-text'))) {
         plugin.player.currentTime(clickedTime);
       }
     }
@@ -86,10 +86,14 @@ var widget = function (plugin) {
     var el = document.createElement('div');
     my.element = el;
     el.setAttribute('id', plugin.prefix + '-' + plugin.player.id());
-    var title = createTitle();
-    el.appendChild(title);
-    var selector = createSelector();
-    el.appendChild(selector);
+    if (plugin.settings.showTitle) {
+      var title = createTitle();
+      el.appendChild(title);
+    }
+    if (plugin.settings.showTrackSelector) {
+      var selector = createSelector();
+      el.appendChild(selector);
+    }
     my.body = utils.createEl('div', '-body');
     el.appendChild(my.body);
     setTrack(plugin.currentTrack);
@@ -114,7 +118,7 @@ var widget = function (plugin) {
       if (time > begin && time < end) {
         if (!line.classList.contains('is-active')) { // don't update if it hasn't changed
           line.classList.add('is-active');
-          if (plugin.settings.autoscroll && !my.body.scroll.inUse()) {
+          if (plugin.settings.autoscroll && !(plugin.settings.stopScrollWhenInUse && my.body.scroll.inUse())) {
               my.body.scroll.to(line);
           }
         }

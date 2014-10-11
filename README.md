@@ -2,25 +2,9 @@
 
 Creates interactive transcripts from text tracks.
 
-## Warning
+## Alpha Release 1
 
-:no_entry: **Warning! This code is an early work in progress and contains bugs, typos, unimplemented features, debug cruft, and other defects. Don't use it yet.**  
-
-### TODO:
-- [x] Seek video to transcript position when transcript is clicked
-- [ ] Add more setup options
-- [x] Nicer default CSS
-- [x] More CSS examples
-- [x] Handle multiple tracks
-- [x] Automatically switch caption track when user selects a different track on the video.
-- [x] Separate track switcher 
-- [x] Autoscrolling transcript
-- [x] *Smooth*, animated scrolling 
-- [x] Clean up scrolling logic.
-- [x] Prevent autoscrolling when user is interacting with transcript (nice to have)
-- [x] Tests!
-- [ ] More Tests!
-- [ ] More...
+Please report any issues or feature requests on the tracker. Thank you!
 
 ## Getting Started
 
@@ -29,12 +13,32 @@ Once you've added the plugin script to your page, you can use it with any video:
 ```html
 <script src="video.js"></script>
 <script src="videojs-transcript.js"></script>
+<video id="video">
+      <source src="whatever.webm" type="video/webm">
+      <track kind="captions" src="mycaptions.srt" srclang="en" label="English" default>
+</video>
+<div id="transcript"></div>
 <script>
-  videojs(document.querySelector('video')).transcript();
+    var video = videojs('video');
+
+    // Set up any options.
+    var options = {
+      showTitle: false,
+      showTrackSelector: false,
+    });
+
+    // Initialize the plugin.
+    var transcript = video.transcript(options);
+
+    // Then attach the widget to the page.
+    var transcriptContainer = document.querySelector('#transcript');
+    transcriptContainer.appendChild(transcript.el());  
 </script>
 ```
-
 There's also a [working example](example.html) of the plugin you can check out if you're having trouble.
+
+You'll also want to include one of the css files. 
+You can style the plugin as you like but there are a few examples in the /css folder to get you started.
 
 ## Documentation
 ### Plugin Options
@@ -53,6 +57,35 @@ Set to false to disable autoscrolling.
 Set which elements in the transcript are clickable.
 Options are 'timestamp', 'text', the whole 'line', or 'none'.
 
+#### showTitle
+**Default:** true
+
+Show a title with the transcript widget.
+
+(Currently the title only says 'Transcript')
+
+#### showTrackSelector
+**Default:** true
+
+Show a track selector with the transcript widget.
+
+#### followPlayerTrack
+**Default:** true
+
+When you change the caption track on the video, the transcript changes tracks as well.
+
+#### stopScrollWhenInUse
+**Default:** true
+
+Don't autoscroll the transcript when the user is trying to scroll it.
+
+(This probably still has a few glitches to work out on touch screens and stuff right now)
+
+### Plugin Methods
+**el()**
+
+Returns the DOM element containing the html transcript widget. You'll need to append this to your page.
+
 ## Release History
 
- - 0.1.0: Initial release
+ - 0.7.1: Alpha Release 1

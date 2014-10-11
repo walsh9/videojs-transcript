@@ -11,5 +11,9 @@ my.player = this;
 // Defaults
 var defaults = {
   autoscroll: true,
-  clickArea: 'line'
+  clickArea: 'text',
+  showTitle: true,
+  showTrackSelector: true,
+  followPlayerTrack: true,
+  stopScrollWhenInUse: true,
 };

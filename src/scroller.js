@@ -86,17 +86,18 @@ var scrollerProto = function(plugin) {
       var parent = element.parentElement;
       var parentOffsetBottom = parent.offsetTop + parent.clientHeight;
       var elementOffsetBottom = element.offsetTop + element.clientHeight;
-      var relPos = element.offsetTop - parent.offsetTop;
+      var relTop = element.offsetTop - parent.offsetTop;
+      var relBottom = (element.offsetTop + element.clientHeight) - parent.offsetTop;
       var newPos;
 
-      // If the line is above the top of the parent view, were scrolling up,
+      // If the top of the line is above the top of the parent view, were scrolling up,
       // so we want to move the top of the element downwards to match the top of the parent.
-      if (relPos < parent.scrollTop) {
+      if (relTop < parent.scrollTop) {
         newPos = element.offsetTop - parent.offsetTop;
 
-      // If the line is below the parent view, we're scrolling down, so we want the
+      // If the bottom of the line is below the parent view, we're scrolling down, so we want the
       // bottom edge of the line to move up to meet the bottom edge of the parent.
-      } else if (relPos > (parent.scrollTop + parent.clientHeight)) {
+      } else if (relBottom > (parent.scrollTop + parent.clientHeight)) {
         newPos = elementOffsetBottom - parentOffsetBottom;
       }
 

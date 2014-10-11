@@ -1,14 +1,34 @@
-#transcript {
-  width: 600px;
-  margin: auto;
-  font-family: Arial, sans-serif;
+.video-container {
+  margin: 40px auto;
+  position: relative;
+  width: 900px;
 }
-
-.transcript-body {
-  height: 200px;
-  overflow-y: scroll;
+#video {
+  margin: 0;
+  position: absolute;
+}
+#transcript {
+  position: absolute;
+  left: 600px;
+  width: 298px;
+  font-family: Arial, sans-serif;
+  overflow-x: scroll;
+  height: 298px;
   border: 1px solid #111;
+}
+.transcript-header {
+  height: 19px;
+  padding: 2px;
+  font-weight: bold;
+}
+.transcript-selector {
+  height: 25px;
+}
+.transcript-body {
+  width: 600px;
+  overflow-y: scroll;
   background-color: #e7e7e7;
+  height: 250px;
 }
 
 .transcript-line {
@@ -48,4 +68,5 @@
   background-color: #555;
   color: #e7e7e7;
 }
+
 

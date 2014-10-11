@@ -15,8 +15,10 @@ var transcript = function (options) {
   if (my.validTracks.length > 0) {
     updateTrack();
     my.player.on('timeupdate', timeUpdate);
-    my.player.on('captionstrackchange', updateTrack);
-    my.player.on('subtitlestrackchange', updateTrack);
+    if (my.settings.followPlayerTrack) {
+      my.player.on('captionstrackchange', updateTrack);
+      my.player.on('subtitlestrackchange', updateTrack);
+    }
   } else {
     throw new Error('videojs-transcript: No tracks found!');
   }
