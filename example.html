@@ -23,8 +23,10 @@
       margin: 40px auto;
     }
   </style>
-</head>
-<body>
+  <script src="node_modules/video.js/dist/video-js/video.js"></script>
+  <script src="dist/videojs-transcript.js"></script>
+  </head>
+  <body>
   <div class="info">
     <p>
       You can see the Video.js Transcript plugin in action below.
@@ -40,8 +42,8 @@
       <p>
         Your browser doesn't support video. Please <a href="http://browsehappy.com/">upgrade your browser</a> to see the example.
       </p>
-      <source src="http://www.openbeelden.nl/files/92/104101.ed_hd.mp4" type="video/mp4">
-      <source src="http://www.openbeelden.nl/files/92/104105.ed_hd.webm" type="video/webm">
+      <source src="//www.openbeelden.nl/files/92/104101.ed_hd.mp4" type="video/mp4">
+      <source src="//www.openbeelden.nl/files/92/104105.ed_hd.webm" type="video/webm">
       <track kind="captions" src="captions/captions.en.srt" srclang="en" label="English" default>
       <track kind="captions" src="captions/captions.sv.srt" srclang="sv" label="Swedish">
       <track kind="captions" src="captions/captions.ru.srt" srclang="ru" label="Russian">
@@ -50,8 +52,6 @@
     </video>
     <div id="transcript"></div>
   </div>
-  <script src="node_modules/video.js/dist/video-js/video.js"></script>
-  <script src="dist/videojs-transcript.js"></script>
   <script>
     var video = videojs('video');
 

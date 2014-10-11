@@ -11,8 +11,11 @@ Please report any issues or feature requests on the tracker. Thank you!
 Once you've added the plugin script to your page, you can use it with any video:
 
 ```html
+<head>
 <script src="video.js"></script>
 <script src="videojs-transcript.js"></script>
+</head>
+<body>
 <video id="video">
       <source src="whatever.webm" type="video/webm">
       <track kind="captions" src="mycaptions.srt" srclang="en" label="English" default>
@@ -34,8 +37,9 @@ Once you've added the plugin script to your page, you can use it with any video:
     var transcriptContainer = document.querySelector('#transcript');
     transcriptContainer.appendChild(transcript.el());  
 </script>
+</body>
 ```
-There's also a [working example](example.html) of the plugin you can check out if you're having trouble.
+There's also a [working example](https://walsh9.github.io/videojs-transcript/example.html) of the plugin you can check out if you're having trouble.
 
 You'll also want to include one of the css files. 
 You can style the plugin as you like but there are a few examples in the /css folder to get you started.
