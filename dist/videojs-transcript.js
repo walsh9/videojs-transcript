@@ -1,5 +1,5 @@
-/*! videojs-transcript - v0.7.1 - 2014-10-10
-* Copyright (c) 2014 Matthew Walsh; Licensed MIT */
+/*! videojs-transcript - v0.7.1 - 2015-06-23
+* Copyright (c) 2015 Matthew Walsh; Licensed MIT */
 (function (window, videojs) {
   'use strict';
 
@@ -299,21 +299,25 @@ var trackList = function (plugin) {
   return {
     get: function () {
       var validTracks = [];
+      var i, track;
       my.tracks = my.player.textTracks();
-      my.tracks.forEach(function (track) {
-        if (track.kind() === 'captions' || track.kind() === 'subtitles') {
+      for (i = 0; i < my.tracks.length; i++) {
+        track = my.tracks[i];
+        if (track.kind === 'captions' || track.kind === 'subtitles') {
           validTracks.push(track);
         }
-      });
+      }
       return validTracks;
     },
     active: function (tracks) {
-      tracks.forEach(function (track) {
-        if (track.mode() === 2) {
+      var i, track;
+      for (i = 0; i < my.tracks.length; i++) {
+        track = my.tracks[i];
+        if (track.mode === 'showing') {
           activeTrack = track;
           return track;
         }
-      });
+      }
       // fallback to first track
       return activeTrack || tracks[0];
     },
@@ -342,7 +346,7 @@ var widget = function (plugin) {
       plugin.validTracks.forEach(function (track, i) {
       var option = document.createElement('option');
       option.value = i;
-      option.textContent = track.label() + ' (' + track.language() + ')';
+      option.textContent = track.label + ' (' + track.language + ')';
       selector.appendChild(option);
     });
     selector.addEventListener('change', function (e) {
@@ -388,7 +392,7 @@ var widget = function (plugin) {
       }
       body.innerHTML = '';
       body.appendChild(fragment);
-      body.setAttribute('lang', track.language());
+      body.setAttribute('lang', track.language);
     };
     if (track.readyState() !==2) {
       track.load();

@@ -24,7 +24,7 @@ var widget = function (plugin) {
       plugin.validTracks.forEach(function (track, i) {
       var option = document.createElement('option');
       option.value = i;
-      option.textContent = track.label() + ' (' + track.language() + ')';
+      option.textContent = track.label + ' (' + track.language + ')';
       selector.appendChild(option);
     });
     selector.addEventListener('change', function (e) {
@@ -70,7 +70,7 @@ var widget = function (plugin) {
       }
       body.innerHTML = '';
       body.appendChild(fragment);
-      body.setAttribute('lang', track.language());
+      body.setAttribute('lang', track.language);
     };
     if (track.readyState() !==2) {
       track.load();
