@@ -92,7 +92,7 @@ Returns the DOM element containing the html transcript widget. You'll need to ap
 
 ## Release History
 
-##### 0.7.2: Alpha Release 1
+##### 0.7.2: Alpha Release 2
 
 * Updated for video.js 4.12
 
