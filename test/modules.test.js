@@ -62,14 +62,14 @@
 
       var track = document.createElement('track');
       track.setAttribute('kind', 'captions');
-      track.setAttribute('src', '../captions/captions.en.srt');
+      track.setAttribute('src', '../captions/captions.en.vtt');
       track.setAttribute('srclang', 'en');
       track.setAttribute('label', 'English');
       video.appendChild(track);
 
       var track2 = document.createElement('track');
       track2.setAttribute('kind', 'subtitles');
-      track2.setAttribute('src', '../captions/captions.sv.srt');
+      track2.setAttribute('src', '../captions/captions.sv.vtt');
       track2.setAttribute('srclang', 'sv');
       track2.setAttribute('label', 'Swedish');
       video.appendChild(track2);
@@ -90,13 +90,13 @@
 
   test('active() returns the default track.', function (assert) {
     var tracks = trackList.get();
-    assert.equal(trackList.active(tracks).label(), 'English', 'Active track is defined');
+    assert.equal(trackList.active(tracks).label, 'English', 'Active track is defined');
   });
 
   test('active() returns active track after track change.', function (assert) {
     var tracks = trackList.get();
-    videojs.players['test-video'].textTracks()[1].show();
-    assert.equal(trackList.active(tracks).label(), 'Swedish', 'Active track returns current track after track change.');
+    videojs.players['test-video'].textTracks()[1].mode = 'showing';
+    assert.equal(trackList.active(tracks).label, 'Swedish', 'Active track returns current track after track change.');
   });
 
  /********************
