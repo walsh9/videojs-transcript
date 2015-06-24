@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>Video.js Transcript</title>
 
-  <link href="//vjs.zencdn.net/4.9/video-js.css" rel="stylesheet">
+  <link href="//vjs.zencdn.net/4.12/video-js.css" rel="stylesheet">
   <link href="css/videojs-transcript.css" title="Example 1" rel="stylesheet">
   <link href="css/videojs-transcript2.css" title="Example 2" rel="alternate stylesheet">
   <link href="css/videojs-transcript3.css" title="Example 3" rel="alternate stylesheet">
@@ -23,7 +23,7 @@
       margin: 40px auto;
     }
   </style>
-  <script src="//vjs.zencdn.net/4.9/video.js"></script>
+  <script src="//vjs.zencdn.net/4.12/video.js"></script>
   <script src="dist/videojs-transcript.js"></script>
   </head>
   <body>
@@ -44,11 +44,11 @@
       </p>
       <source src="http://www.openbeelden.nl/files/92/104101.ed_hd.mp4" type="video/mp4">
       <source src="http://www.openbeelden.nl/files/92/104105.ed_hd.webm" type="video/webm">
-      <track kind="captions" src="captions/captions.en.srt" srclang="en" label="English" default>
-      <track kind="captions" src="captions/captions.sv.srt" srclang="sv" label="Swedish">
-      <track kind="captions" src="captions/captions.ru.srt" srclang="ru" label="Russian">
-      <track kind="captions" src="captions/captions.ja.srt" srclang="ja" label="Japanese">
-      <track kind="captions" src="captions/captions.ar.srt" srclang="ar" label="Arabic">
+      <track kind="captions" src="captions/captions.en.vtt" srclang="en" label="English" default>
+      <track kind="captions" src="captions/captions.sv.vtt" srclang="sv" label="Swedish">
+      <track kind="captions" src="captions/captions.ru.vtt" srclang="ru" label="Russian">
+      <track kind="captions" src="captions/captions.ja.vtt" srclang="ja" label="Japanese">
+      <track kind="captions" src="captions/captions.ar.vtt" srclang="ar" label="Arabic">
     </video>
     <div id="transcript"></div>
   </div>
@@ -56,7 +56,7 @@
     var video = videojs('video');
 
     // fire up the plugin
-    var transcript = video.transcript()
+    var transcript = video.transcript();
 
     // attach the widget to the page
     var transcriptContainer = document.querySelector('#transcript');

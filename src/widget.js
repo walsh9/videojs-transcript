@@ -24,7 +24,7 @@ var widget = function (plugin) {
       plugin.validTracks.forEach(function (track, i) {
       var option = document.createElement('option');
       option.value = i;
-      option.textContent = track.label() + ' (' + track.language() + ')';
+      option.textContent = track.label + ' (' + track.language + ')';
       selector.appendChild(option);
     });
     selector.addEventListener('change', function (e) {
@@ -62,25 +62,32 @@ var widget = function (plugin) {
     var body = utils.createEl('div', '-body');
     var line, i;
     var fragment = document.createDocumentFragment();
-    var createTranscript = function () {
-      var cues = track.cues();
+    // activeCues returns null when the track isn't loaded (for now?)
+    if (!track.activeCues) {
+      // If cues aren't loaded, set mode to hidden, wait, and try again.
+      // But don't hide an active track. In that case, just wait and try again.
+      if (track.mode !== 'showing') {
+        track.mode = 'hidden';
+      }
+      var self = this;
+      return window.setTimeout(function() {
+        createTranscriptBody(track);
+      }, 100);
+    } else {
+      var cues = track.cues;
       for (i = 0; i < cues.length; i++) {
         line = createLine(cues[i]);
         fragment.appendChild(line);
       }
       body.innerHTML = '';
       body.appendChild(fragment);
-      body.setAttribute('lang', track.language());
-    };
-    if (track.readyState() !==2) {
-      track.load();
-      track.on('loaded', createTranscript);
-    } else {
-      createTranscript();
+      body.setAttribute('lang', track.language);
+      body.scroll = scroller(body);
+      body.addEventListener('click', clickToSeekHandler);
+      my.element.replaceChild(body, my.body);
+      my.body = body;
     }
-    body.scroll = scroller(body);
-    body.addEventListener('click', clickToSeekHandler);
-    return body;
+
   };
   var create = function () {
     var el = document.createElement('div');
@@ -99,10 +106,8 @@ var widget = function (plugin) {
     setTrack(plugin.currentTrack);
     return this;
   };
-  var setTrack = function (track) {
-    var newBody = createTranscriptBody(track);
-    my.element.replaceChild(newBody, my.body);
-    my.body = newBody;
+  var setTrack = function (track, trackCreated) {
+    createTranscriptBody(track, trackCreated);
   };
   var setCue = function (time) {
     var active, i, line, begin, end;

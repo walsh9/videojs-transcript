@@ -2,7 +2,7 @@
 
 Creates interactive transcripts from text tracks.
 
-## Alpha Release 1
+## Alpha Release 2
 
 Please report any issues or feature requests on the tracker. Thank you!
 
@@ -92,4 +92,10 @@ Returns the DOM element containing the html transcript widget. You'll need to ap
 
 ## Release History
 
- - 0.7.1: Alpha Release 1
+##### 0.7.2: Alpha Release 2
+
+* Updated for video.js 4.12
+
+##### 0.7.1: Alpha Release 1
+
+* First release
