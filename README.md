@@ -2,7 +2,7 @@
 
 Creates interactive transcripts from text tracks.
 
-## Alpha Release 1
+## Alpha Release 2
 
 Please report any issues or feature requests on the tracker. Thank you!
 
@@ -91,5 +91,9 @@ Don't autoscroll the transcript when the user is trying to scroll it.
 Returns the DOM element containing the html transcript widget. You'll need to append this to your page.
 
 ## Release History
+
+ - 0.7.2: Alpha Release 1
+
+* Updated for video.js 4.12
 
  - 0.7.1: Alpha Release 1
