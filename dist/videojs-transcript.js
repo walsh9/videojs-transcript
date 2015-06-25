@@ -1,4 +1,4 @@
-/*! videojs-transcript - v0.7.1 - 2015-06-23
+/*! videojs-transcript - v0.7.1 - 2015-06-24
 * Copyright (c) 2015 Matthew Walsh; Licensed MIT */
 (function (window, videojs) {
   'use strict';
@@ -391,8 +391,7 @@ var widget = function (plugin) {
       if (track.mode !== 'showing') {
         track.mode = 'hidden';
       }
-      var self = this;
-      return window.setTimeout(function() {
+      window.setTimeout(function() {
         createTranscriptBody(track);
       }, 100);
     } else {

@@ -69,8 +69,7 @@ var widget = function (plugin) {
       if (track.mode !== 'showing') {
         track.mode = 'hidden';
       }
-      var self = this;
-      return window.setTimeout(function() {
+      window.setTimeout(function() {
         createTranscriptBody(track);
       }, 100);
     } else {
