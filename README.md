@@ -22,20 +22,20 @@ Once you've added the plugin script to your page, you can use it with any video:
 </video>
 <div id="transcript"></div>
 <script>
-    var video = videojs('video');
+    var video = videojs('video').ready(function(){
+      // Set up any options.
+      var options = {
+        showTitle: false,
+        showTrackSelector: false,
+      });
 
-    // Set up any options.
-    var options = {
-      showTitle: false,
-      showTrackSelector: false,
-    });
+      // Initialize the plugin.
+      var transcript = video.transcript(options);
 
-    // Initialize the plugin.
-    var transcript = video.transcript(options);
-
-    // Then attach the widget to the page.
-    var transcriptContainer = document.querySelector('#transcript');
-    transcriptContainer.appendChild(transcript.el());  
+      // Then attach the widget to the page.
+      var transcriptContainer = document.querySelector('#transcript');
+      transcriptContainer.appendChild(transcript.el()); 
+    }); 
 </script>
 </body>
 ```

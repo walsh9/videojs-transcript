@@ -5,8 +5,7 @@
 (function (window, videojs, qunit) {
   'use strict';
 
-  var realIsHtmlSupported,
-      player,
+  var player,
 
       // local QUnit aliases
       // http://api.qunitjs.com/
@@ -28,7 +27,17 @@
       // throws(block, [expected], [message])
       throws = qunit.throws,
       expect = qunit.expect,
-      asyncTest = qunit.asyncTest;
+      asyncTest = qunit.asyncTest,
+      Flash = videojs.getComponent('Flash'),
+      Html5 = videojs.getComponent('Html5'),
+      backup = {
+        Flash: {
+          isSupported: Flash.isSupported
+        },
+        Html5: {
+          isSupported: Html5.isSupported
+        }
+      };
 
  /********************
   * test events.js
@@ -48,10 +57,8 @@
   ********************/
   module('tracklist', {
     setup: function() {
-      // force HTML support so the tests run in a reasonable
-      // environment under phantomjs
-      realIsHtmlSupported = videojs.Html5.isSupported;
-      videojs.Html5.isSupported = function () {
+      // Force HTML5/Flash support.
+      Html5.isSupported = Flash.isSupported = function() {
         return true;
       };
 
@@ -62,14 +69,14 @@
 
       var track = document.createElement('track');
       track.setAttribute('kind', 'captions');
-      track.setAttribute('src', '../captions/captions.en.vtt');
+      track.src = '../captions/captions.en.vtt';
       track.setAttribute('srclang', 'en');
       track.setAttribute('label', 'English');
       video.appendChild(track);
 
       var track2 = document.createElement('track');
       track2.setAttribute('kind', 'subtitles');
-      track2.setAttribute('src', '../captions/captions.sv.vtt');
+      track2.src = '../captions/captions.sv.vtt';
       track2.setAttribute('srclang', 'sv');
       track2.setAttribute('label', 'Swedish');
       video.appendChild(track2);
@@ -80,7 +87,9 @@
       my.player = player;
     },
     teardown: function() {
-      videojs.Html5.isSupported = realIsHtmlSupported;
+      // Restore original state of the techs.
+      Html5.isSupported = backup.Flash.isSupported;
+      Flash.isSupported = backup.Html5.setSource;
     }
   });
 
@@ -88,15 +97,23 @@
     assert.equal(trackList.get().length, videojs.players['test-video'].textTracks().length, 'Tracklist length is correct');
   });
 
-  test('active() returns the default track.', function (assert) {
-    var tracks = trackList.get();
-    assert.equal(trackList.active(tracks).label, 'English', 'Active track is defined');
+  asyncTest('active() returns the default track.', function (assert) {
+    //be sure that video js is ready
+    setTimeout(function () {
+      var tracks = trackList.get();
+      assert.equal(trackList.active(tracks).label, 'English', 'Active track is defined');
+      qunit.start();
+    }, 50);
   });
 
-  test('active() returns active track after track change.', function (assert) {
-    var tracks = trackList.get();
-    videojs.players['test-video'].textTracks()[1].mode = 'showing';
-    assert.equal(trackList.active(tracks).label, 'Swedish', 'Active track returns current track after track change.');
+  asyncTest('active() returns active track after track change.', function (assert) {
+    //be sure that video js is ready
+    setTimeout(function () {
+      var tracks = trackList.get();
+      videojs.players['test-video'].textTracks()[1].mode = 'showing';
+      assert.equal(trackList.active(tracks).label, 'Swedish', 'Active track returns current track after track change.');
+      qunit.start();
+    }, 50);
   });
 
  /********************

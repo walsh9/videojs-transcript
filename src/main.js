@@ -3,7 +3,7 @@ var transcript = function (options) {
   my.player = this;
   my.validTracks = trackList.get();
   my.currentTrack = trackList.active(my.validTracks);
-  my.settings = videojs.util.mergeOptions(defaults, options);
+  my.settings = videojs.mergeOptions(defaults, options);
   my.widget = widget.create();
   var timeUpdate = function () {
     my.widget.setCue(my.player.currentTime());

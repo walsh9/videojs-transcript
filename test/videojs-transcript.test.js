@@ -4,8 +4,7 @@
 (function (window, videojs, qunit) {
   'use strict';
 
-  var realIsHtmlSupported,
-      player,
+  var player,
 
       // local QUnit aliases
       // http://api.qunitjs.com/
@@ -25,14 +24,22 @@
       // notEqual(actual, expected, [message])
       notEqual = qunit.notEqual,
       // throws(block, [expected], [message])
-      throws = qunit.throws;
+      throws = qunit.throws,
+      Flash = videojs.getComponent('Flash'),
+      Html5 = videojs.getComponent('Html5'),
+      backup = {
+        Flash: {
+          isSupported: Flash.isSupported
+        },
+        Html5: {
+          isSupported: Html5.isSupported
+        }
+      };
 
   module('videojs-transcript', {
     setup: function() {
-      // force HTML support so the tests run in a reasonable
-      // environment under phantomjs
-      realIsHtmlSupported = videojs.Html5.isSupported;
-      videojs.Html5.isSupported = function () {
+      // Force HTML5/Flash support.
+      Html5.isSupported = Flash.isSupported = function() {
         return true;
       };
 
@@ -43,13 +50,16 @@
       video.appendChild(track);
 
       // create a video.js player
-      player = videojs(video);
-
-      // initialize the plugin with the default options
-      player.transcript();
+      player = videojs(video).ready(function(){
+        // initialize the plugin with the default options
+        this.transcript();
+      });
+      
     },
     teardown: function() {
-      videojs.Html5.isSupported = realIsHtmlSupported;
+      // Restore original state of the techs.
+      Html5.isSupported = backup.Flash.isSupported;
+      Flash.isSupported = backup.Html5.setSource;
     }
   });
 
