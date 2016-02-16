@@ -30,7 +30,7 @@ Once you've added the plugin script to your page, you can use it with any video:
       });
 
       // Initialize the plugin.
-      var transcript = video.transcript(options);
+      var transcript = this.transcript(options);
 
       // Then attach the widget to the page.
       var transcriptContainer = document.querySelector('#transcript');
