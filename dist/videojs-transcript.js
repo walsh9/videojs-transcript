@@ -1,5 +1,5 @@
-/*! videojs-transcript - v0.7.1 - 2015-06-24
-* Copyright (c) 2015 Matthew Walsh; Licensed MIT */
+/*! videojs-transcript - v0.7.1 - 2016-02-16
+* Copyright (c) 2016 Matthew Walsh; Licensed MIT */
 (function (window, videojs) {
   'use strict';
 
@@ -471,7 +471,7 @@ var transcript = function (options) {
   my.player = this;
   my.validTracks = trackList.get();
   my.currentTrack = trackList.active(my.validTracks);
-  my.settings = videojs.util.mergeOptions(defaults, options);
+  my.settings = videojs.mergeOptions(defaults, options);
   my.widget = widget.create();
   var timeUpdate = function () {
     my.widget.setCue(my.player.currentTime());
