@@ -2,7 +2,7 @@
 
 Creates interactive transcripts from text tracks.
 
-## Alpha Release 2
+## Alpha Release 3
 
 Please report any issues or feature requests on the tracker. Thank you!
 
