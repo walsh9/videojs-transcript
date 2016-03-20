@@ -27,7 +27,7 @@ Once you've added the plugin script to your page, you can use it with any video:
       var options = {
         showTitle: false,
         showTrackSelector: false,
-      });
+      };
 
       // Initialize the plugin.
       var transcript = this.transcript(options);
