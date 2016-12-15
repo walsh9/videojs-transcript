@@ -1,0 +1,21 @@
+{
+  "name": "videojs-transcript",
+  "version": "0.1",
+  "dependencies": {
+    "video-js": "5.13.1",
+  },
+  "homepage": "https://github.com/raccoongang/videojs-transcript",
+  "authors": [
+    "walsh9"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
