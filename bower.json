@@ -2,7 +2,7 @@
   "name": "videojs-transcript",
   "version": "0.1",
   "dependencies": {
-    "video-js": "5.13.1",
+    "video-js": "5.13.1"
   },
   "homepage": "https://github.com/raccoongang/videojs-transcript",
   "authors": [

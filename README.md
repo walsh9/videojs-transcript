@@ -55,6 +55,11 @@ object may contain any of the following properties:
 
 Set to false to disable autoscrolling.
 
+#### scrollToCenter
+**Default:** false
+
+By default current row shows on the bottom on autoscrolling. Set to true to show it in the center
+ 
 #### clickArea
 **Default:** 'line'
 
