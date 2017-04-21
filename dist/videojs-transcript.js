@@ -1,5 +1,5 @@
-/*! videojs-transcript - v0.8.0 - 2016-02-21
-* Copyright (c) 2016 Matthew Walsh; Licensed MIT */
+/*! videojs-transcript - v0.8.1 - 2017-04-21
+* Copyright (c) 2017 Matthew Walsh; Licensed MIT */
 (function (window, videojs) {
   'use strict';
 
