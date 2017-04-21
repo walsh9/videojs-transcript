@@ -2,7 +2,7 @@
   "name": "videojs-transcript",
   "version": "0.8.1",
   "dependencies": {
-    "video.js": "5.13.1"
+    "video.js": "^5.6.0"
   },
   "homepage": "https://github.com/walsh9/videojs-transcript",
   "authors": [
