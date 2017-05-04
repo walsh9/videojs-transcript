@@ -1,5 +1,5 @@
-/*! videojs-transcript - v0.8.0 - 2016-02-21
-* Copyright (c) 2016 Matthew Walsh; Licensed MIT */
+/*! videojs-transcript - v0.8.1 - 2017-04-21
+* Copyright (c) 2017 Matthew Walsh; Licensed MIT */
 (function (window, videojs) {
   'use strict';
 
@@ -376,6 +376,7 @@ var widget = function (plugin) {
     var timestamp = utils.createEl('span', '-timestamp');
     var text = utils.createEl('span', '-text');
     line.setAttribute('data-begin', cue.startTime);
+    line.setAttribute('tabindex', my._options.tabIndex || 0);
     timestamp.textContent = utils.secondsToTime(cue.startTime);
     text.innerHTML = cue.text;
     line.appendChild(timestamp);
@@ -415,8 +416,9 @@ var widget = function (plugin) {
     }
 
   };
-  var create = function () {
+  var create = function (options) {
     var el = document.createElement('div');
+    my._options = options;
     my.element = el;
     el.setAttribute('id', plugin.prefix + '-' + plugin.player.id());
     if (plugin.settings.showTitle) {
@@ -477,7 +479,7 @@ var transcript = function (options) {
   my.validTracks = trackList.get();
   my.currentTrack = trackList.active(my.validTracks);
   my.settings = videojs.mergeOptions(defaults, options);
-  my.widget = widget.create();
+  my.widget = widget.create(options);
   var timeUpdate = function () {
     my.widget.setCue(my.player.currentTime());
   };

@@ -15,5 +15,6 @@ var defaults = {
   showTitle: true,
   showTrackSelector: true,
   followPlayerTrack: true,
+  scrollToCenter: false,
   stopScrollWhenInUse: true,
 };
